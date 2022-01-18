@@ -7,10 +7,12 @@ Monza is in early development and is a built for the purpose of it being a capst
 ## Currently working on:
 
 - Board Representation
-  - Piece Centric Representation using Bitboards
-  - Defining macros for Bitboard Operations
-  - Encoding Pieces on the board
+  - [x] Piece Centric Representation using Bitboards
+  - [x] Defining macros for Bitboard Operations (SET/GET/POP)
+  - [ ] Encoding Pieces on the board
 - Move Generation
+  - [X] pre-calculated pawn attack table
+  - [X] pre-calculated knight attack table
 
 ## Features / Todo of Monza
 
