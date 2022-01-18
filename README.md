@@ -13,6 +13,8 @@ Monza is in early development and is a built for the purpose of it being a capst
 - Move Generation
   - [X] pre-calculated pawn attack table
   - [X] pre-calculated knight attack table
+  - [X] pre-calculated king attack table
+  - [ ] pre-calculated sliding pieces attack tables (rook/bishop...) - _Magic Bitboards_
 
 ## Features / Todo of Monza
 
