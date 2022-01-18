@@ -24,6 +24,16 @@ enum {
     a1, b1, c1, d1, e1, f1, g1, h1,
 };
 
+enum {
+    white,
+    black
+};
+
+const Bitboard notAFile  = 18374403900871474942ULL; // 0xfefefefefefefefe; // ~0x0101010101010101
+const Bitboard notABFile = 18229723555195321596ULL;
+const Bitboard notHFile  = 9187201950435737471ULL; // 0x7f7f7f7f7f7f7f7f; // ~0x8080808080808080
+const Bitboard notHGFile = 4557430888798830399ULL;
+
 /*
  "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
  "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
