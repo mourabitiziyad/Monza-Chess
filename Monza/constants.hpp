@@ -44,4 +44,6 @@ enum {
 
 # define bit_on_square(board, square) ((board) & (1ULL << square))
 # define set_bit(board, square) ((board) |= (1ULL << square))
-# define pop_bit(board, square) (bit_on_square(board, square) ? (board) ^= (1ULL << square) : 0)
+//# define pop_bit(board, square) (bit_on_square(board, square) ? (board) ^= (1ULL << square) : 0)
+# define pop_bit(board, square) ((board) &= ~(1ULL << (square)))
+
