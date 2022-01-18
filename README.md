@@ -7,7 +7,10 @@ Monza is in early development and is a built for the purpose of it being a capst
 ## Currently working on:
 
 - Board Representation
-- Rule Management
+  - Piece Centric Representation using Bitboards
+  - Defining macros for Bitboard Operations
+  - Encoding Pieces on the board
+- Move Generation
 
 ## Features / Todo of Monza
 
