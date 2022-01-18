@@ -38,6 +38,26 @@ void board(Bitboard bitboard) {
 
 Bitboard pawn_attack_moves[2][64]; // [Side] [Square]
 Bitboard knight_attack_moves[64];
+Bitboard king_attack_moves[64];
+
+Bitboard mask_king_attacks(int square) {
+    Bitboard attacks = 0ULL;
+    Bitboard bitboard = 0ULL;
+    
+    set_bit(bitboard, square);
+    
+    if (bitboard >> 8) attacks |= (bitboard >> 8); // Condition may not be needed
+    if ((bitboard >> 9) & notHFile) attacks |= (bitboard >> 9);
+    if ((bitboard >> 7) & notAFile) attacks |= (bitboard >> 7);
+    if ((bitboard >> 1) & notHFile) attacks |= (bitboard >> 1);
+    
+    if (bitboard << 8) attacks |= (bitboard << 8); // Condition may not be needed
+    if ((bitboard << 9) & notAFile) attacks |= (bitboard << 9);
+    if ((bitboard << 7) & notHFile) attacks |= (bitboard << 7);
+    if ((bitboard << 1) & notAFile) attacks |= (bitboard << 1);
+    
+    return attacks;
+}
 
 Bitboard mask_knight_attacks(int square) {
     
@@ -80,17 +100,25 @@ Bitboard mask_pawn_attacks(int side, int square) {
     return attacks;
 }
 
+void init_non_sliding_pieces(){
+    for (int square = 0; square < 64; square++) {
+        
+        pawn_attack_moves[white][square] = mask_pawn_attacks(white, square);
+        pawn_attack_moves[black][square] = mask_pawn_attacks(black, square);
+        
+        knight_attack_moves[square] = mask_knight_attacks(square);
+        
+        king_attack_moves[square] = mask_king_attacks(square);
+    }
+}
+
 //      +---+---+---+---+---+---+---+---+---+---+
 //      +---+---+---+---+ main  +---+---+---+---+
 //      +---+---+---+---+---+---+---+---+---+---+
 
 int main(int argc, const char * argv[]) {
-//    set_bit(bitboard, e4);
-//    set_bit(bitboard, h1);
-//    board();
-//    pop_bit(bitboard, h1);
-//    board();
-    board(mask_knight_attacks(b2));
-
+    init_non_sliding_pieces();
+    for (int square = 0; square < 64; square++)
+        board(king_attack_moves[square]);
     return 0;
 }
