@@ -4,6 +4,8 @@ Monza is in early development and is a built for the purpose of it being a capst
 
 "Monza" is a city that's just northeast of Italy and it is used as a reference to Monza Circuit; one of the highest speed Formula 1 tracks and is known as the temple of speed.
 
+Check out Monza on [Lichess](https://lichess.org/@/MonzaEngine)
+
 ## Currently working on:
 
 - Board Representation
