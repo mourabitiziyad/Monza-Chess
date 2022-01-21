@@ -16,20 +16,21 @@ using namespace std;
 
 void board(Bitboard bitboard) {
     for (int rank=0; rank<8; rank++) {
-        cout << "   +---+---+---+---+---+---+---+---+\n";
+//        cout << "   +---+---+---+---+---+---+---+---+\n";
         for (int file=0; file<8; file++) {
             
             !file && cout << (8 - rank) << "  ";
             
-            cout << "| " << (bit_on_square(bitboard, (rank * 8 + file)) ? 1 : 0) << " ";
+            cout << " " << (bit_on_square(bitboard, (rank * 8 + file)) ? 1 : 0);
         }
-        cout << "|\n";
+        cout << "\n";
     }
-    cout << "   +---+---+---+---+---+---+---+---+\n\n  ";
+//    cout << "   +---+---+---+---+---+---+---+---+\n\n  ";
+    cout << "\n   ";
     for (char i='A'; i<='H'; i++)
-        cout << "   " << i;
-    cout << "\n\n     Bitboard: " << bitboard;
-    cout << "\n\n";
+        cout << " " << i;
+    cout << "\n\n    Bitboard: " << bitboard << "\n\n";
+    
 }
 
 //      +---+---+---+---+---+---+---+---+---+---+---+---+---+---+
@@ -39,6 +40,119 @@ void board(Bitboard bitboard) {
 Bitboard pawn_attack_moves[2][64]; // [Side] [Square]
 Bitboard knight_attack_moves[64];
 Bitboard king_attack_moves[64];
+
+Bitboard generate_rook_attacks(int square, Bitboard blocker_piece) {
+    
+    Bitboard attacks = 0ULL;
+    
+    int file, rank;
+    int t_rank = square / 8;
+    int t_file = square % 8;
+    
+    cout << "rank: " << t_rank << " file: " << t_file << " " << "\n";
+    
+    for (rank = t_rank + 1; rank < 8; rank++) {
+        Bitboard square = (1ULL << (rank * 8 + t_file));
+        attacks |= square;
+        if (square & blocker_piece) break;
+    }
+        
+    for (rank = t_rank - 1; rank >= 0; rank--) {
+        Bitboard square = (1ULL << (rank * 8 + t_file));
+        attacks |= square;
+        if (square & blocker_piece) break;
+    }
+        
+    for (file = t_file - 1; file >= 0; file--) {
+        Bitboard square = (1ULL << (t_rank * 8 + file));
+        attacks |= square;
+        if (square & blocker_piece) break;
+    }
+        
+    for (file = t_file + 1; file < 8; file++) {
+        Bitboard square = (1ULL << (t_rank * 8 + file));
+        attacks |= square;
+        if (square & blocker_piece) break;
+    }
+    
+    return attacks;
+}
+
+Bitboard generate_bishop_attacks(int square, Bitboard blocker_piece) {
+    
+    Bitboard attacks = 0ULL;
+    
+    int file, rank;
+    int t_rank = square / 8;
+    int t_file = square % 8;
+    
+    for (rank = t_rank + 1, file = t_file + 1; rank < 8 && file < 8; rank++, file++) {
+        Bitboard square = 1ULL << (rank * 8 + file);
+        attacks |= square;
+        if (square & blocker_piece) break;
+    }
+    for (rank = t_rank - 1, file = t_file + 1; rank >= 0 && file < 8; rank--, file++) {
+        Bitboard square = 1ULL << (rank * 8 + file);
+        attacks |= square;
+        if (square & blocker_piece) break;
+    }
+    for (rank = t_rank + 1, file = t_file - 1; rank < 8 && file >= 0; rank++, file--) {
+        Bitboard square = 1ULL << (rank * 8 + file);
+        attacks |= square;
+        if (square & blocker_piece) break;
+    }
+        
+    for (rank = t_rank - 1, file = t_file - 1; rank >= 0 && file >= 0; rank--, file--) {
+        Bitboard square = 1ULL << (rank * 8 + file);
+        attacks |= square;
+        if (square & blocker_piece) break;
+    }
+    
+    return attacks;
+}
+
+
+Bitboard mask_bishop_attacks(int square) {
+    
+    Bitboard occu_squares = 0ULL;
+    
+    int file, rank;
+    int t_rank = square / 8;
+    int t_file = square % 8;
+    
+    for (rank = t_rank + 1, file = t_file + 1; rank < 7 && file < 7; rank++, file++)
+        occu_squares |= (1ULL << (rank * 8 + file));
+    for (rank = t_rank - 1, file = t_file + 1; rank >= 1 && file < 7; rank--, file++)
+        occu_squares |= (1ULL << (rank * 8 + file));
+    for (rank = t_rank + 1, file = t_file - 1; rank < 7 && file >= 1; rank++, file--)
+        occu_squares |= (1ULL << (rank * 8 + file));
+    for (rank = t_rank - 1, file = t_file - 1; rank >= 1 && file >= 1; rank--, file--)
+        occu_squares |= (1ULL << (rank * 8 + file));
+    
+    return occu_squares; // relevant bishop occupancy squares
+}
+
+Bitboard mask_rook_attacks(int square) {
+    
+    Bitboard occu_squares = 0ULL;
+    
+    int file, rank;
+    int t_rank = square / 8;
+    int t_file = square % 8;
+    
+    cout << "rank: " << t_rank << " file: " << t_file << " " << "\n";
+    
+    for (rank = t_rank + 1; rank < 7; rank++)
+        occu_squares |= (1ULL << (rank * 8 + t_file));
+    for (rank = t_rank - 1; rank >= 1; rank--)
+        occu_squares |= (1ULL << (rank * 8 + t_file));
+    for (file = t_file - 1; file >= 1; file--)
+        occu_squares |= (1ULL << (t_rank * 8 + file));
+    for (file = t_file + 1; file < 7; file++)
+        occu_squares |= (1ULL << (t_rank * 8 + file));
+    
+    return occu_squares; // relevant rook occupancy squares
+}
 
 Bitboard mask_king_attacks(int square) {
     Bitboard attacks = 0ULL;
@@ -118,7 +232,17 @@ void init_non_sliding_pieces(){
 
 int main(int argc, const char * argv[]) {
     init_non_sliding_pieces();
-    for (int square = 0; square < 64; square++)
-        board(king_attack_moves[square]);
+//    for (int square = 0; square < 64; square++) {
+//        cout << "bishop is on " << squares[square] << " - " << square << "\n";
+//        board(mask_rook_attacks(square));
+//    }
+    Bitboard blocker = 0ULL;
+    set_bit(blocker, d2);
+    set_bit(blocker, b4);
+    set_bit(blocker, g4);
+    board(blocker);
+    
+//    cout << ls1b(blocker) << " " << squares[ls1b(blocker)] << "\n ";
+        
     return 0;
 }
