@@ -13,10 +13,21 @@ Check out Monza on [Lichess](https://lichess.org/@/MonzaEngine)
   - [x] Defining macros for Bitboard Operations (SET/GET/POP)
   - [ ] Encoding Pieces on the board
 - Move Generation
-  - [X] pre-calculated pawn attack table
-  - [X] pre-calculated knight attack table
-  - [X] pre-calculated king attack table
+  - [X] pre-calculated pawn attack table.
+  - [X] pre-calculated knight attack table.
+  - [X] pre-calculated king attack table.
+  - [X] Generate Rook attack squares.
+  - [X] Generate Bishop attack squares.
+  - [X] Limit Rook / Bishop attackes to blocked squares.
   - [ ] pre-calculated sliding pieces attack tables (rook/bishop...) - _Magic Bitboards_
+- Other
+  - [X] Define macros for ls1b and count bits
+    - ls1b:
+      - Using `__builtin_ctzll` from C++.
+    - count_bits
+      - Using `__builtin_popcountll`.
+      - it seems that the above implementation is faster than using _Brian Kernighan’s Algorithm_ which uses `bitboard &= bitboard - 1;` within a loop to count how many times the bits are eliminated.
+    
 
 ## Features / Todo of Monza
 
