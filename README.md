@@ -4,6 +4,8 @@ Monza is in early development and is a built for the purpose of it being a capst
 
 "Monza" is a city that's just northeast of Italy and it is used as a reference to Monza Circuit; one of the highest speed Formula 1 tracks and is known as the temple of speed.
 
+Check out Monza on [Lichess](https://lichess.org/@/MonzaEngine)
+
 ## Currently working on:
 
 - Board Representation
@@ -13,6 +15,8 @@ Monza is in early development and is a built for the purpose of it being a capst
 - Move Generation
   - [X] pre-calculated pawn attack table
   - [X] pre-calculated knight attack table
+  - [X] pre-calculated king attack table
+  - [ ] pre-calculated sliding pieces attack tables (rook/bishop...) - _Magic Bitboards_
 
 ## Features / Todo of Monza
 
