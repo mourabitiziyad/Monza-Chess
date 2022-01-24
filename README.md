@@ -19,7 +19,7 @@ Check out Monza on [Lichess](https://lichess.org/@/MonzaEngine)
   - [X] Generate Rook attack squares.
   - [X] Generate Bishop attack squares.
   - [X] Limit Rook / Bishop attackes to blocked squares.
-  - [ ] pre-calculated sliding pieces attack tables (rook/bishop...) - _Magic Bitboards_
+  - [X] pre-calculated sliding pieces attack tables (rook/bishop...) - _Magic Bitboards_
 - Other
   - [X] Define macros for ls1b and count bits
     - ls1b:
@@ -32,3 +32,15 @@ Check out Monza on [Lichess](https://lichess.org/@/MonzaEngine)
 ## Features / Todo of Monza
 
 - WIP
+
+## Resources / Inspiration
+### Sources that I looked at extensively (not necessarily adopted in my implementation)
+#### _In no particular order_
+
+- Maksim Korzh - BBC (Bitboard Chess Engine)
+- Jay Honnold - Berserk Chess Engine
+- Andrew Grant - Ethereal Chess Engine
+- Pradyumna Kannan - Magic Move-Bitboard Generation in Computer Chess
+- Chess Programming Wiki
+- Trevor Fenner & Mark Levene - Move Generation with Perfect Hash Functions
+- Bluefever Software
