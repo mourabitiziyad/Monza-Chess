@@ -14,6 +14,19 @@ using namespace std;
 //      +---+---+---+---+ Printing the Board ---+---+---+---+
 //      +---+---+---+---+---+---+---+---+---+---+---+---+---+
 
+// https://www.chessprogramming.org/Looking_for_Magics
+// https://www.chessprogramming.org/Magic_Bitboards#How_it_works
+
+Bitboard get_occupancy_set(int idx, int bits, Bitboard attacks) {
+    Bitboard occupancy = 0ULL;
+    for (int x = 0; x < bits; x++) {
+        int square = ls1b(attacks);
+        pop_bit(attacks, square);
+        if (idx & (1 << x)) occupancy |= (1ULL << square); // What are we checking for here?
+    }
+    return occupancy;
+}
+
 void board(Bitboard bitboard) {
     for (int rank=0; rank<8; rank++) {
 //        cout << "   +---+---+---+---+---+---+---+---+\n";
@@ -33,6 +46,7 @@ void board(Bitboard bitboard) {
     
 }
 
+//      https://www.chessprogramming.org/Looking_for_Magics
 //      +---+---+---+---+---+---+---+---+---+---+---+---+---+---+
 //      +---+---+---+---+ Pre-Calculated Attacks ---+---+---+---+
 //      +---+---+---+---+---+---+---+---+---+---+---+---+---+---+
@@ -40,6 +54,32 @@ void board(Bitboard bitboard) {
 Bitboard pawn_attack_moves[2][64]; // [Side] [Square]
 Bitboard knight_attack_moves[64];
 Bitboard king_attack_moves[64];
+
+const int bishop_relevant_occupancy_bits[64] = {
+  6, 5, 5, 5, 5, 5, 5, 6,
+  5, 5, 5, 5, 5, 5, 5, 5,
+  5, 5, 7, 7, 7, 7, 5, 5,
+  5, 5, 7, 9, 9, 7, 5, 5,
+  5, 5, 7, 9, 9, 7, 5, 5,
+  5, 5, 7, 7, 7, 7, 5, 5,
+  5, 5, 5, 5, 5, 5, 5, 5,
+  6, 5, 5, 5, 5, 5, 5, 6
+};
+
+// Count bits of masked sliding piece attacks for every square.
+// Consider bishop_relevant_occupancy_bits[0] which is A8.
+// There are 6 bits (we exclude the edge) in its attack squares.
+
+const int rook_relevant_occupancy_bits[64] = {
+  12, 11, 11, 11, 11, 11, 11, 12,
+  11, 10, 10, 10, 10, 10, 10, 11,
+  11, 10, 10, 10, 10, 10, 10, 11,
+  11, 10, 10, 10, 10, 10, 10, 11,
+  11, 10, 10, 10, 10, 10, 10, 11,
+  11, 10, 10, 10, 10, 10, 10, 11,
+  11, 10, 10, 10, 10, 10, 10, 11,
+  12, 11, 11, 11, 11, 11, 11, 12
+};
 
 Bitboard generate_rook_attacks(int square, Bitboard blocker_piece) {
     
@@ -236,13 +276,15 @@ int main(int argc, const char * argv[]) {
 //        cout << "bishop is on " << squares[square] << " - " << square << "\n";
 //        board(mask_rook_attacks(square));
 //    }
-    Bitboard blocker = 0ULL;
-    set_bit(blocker, d2);
-    set_bit(blocker, b4);
-    set_bit(blocker, g4);
-    board(blocker);
+    Bitboard attack_mask = mask_rook_attacks(a1);
+    board(attack_mask);
+    int bit_count = count_bits(attack_mask);
+    for (int idx = 0; idx < 4096; idx++) {
+        cout << idx << '\n' << bit_count << '\n';
+        board(get_occupancy_set(idx, bit_count, attack_mask));
+        getchar();
+    }
     
-//    cout << ls1b(blocker) << " " << squares[ls1b(blocker)] << "\n ";
         
     return 0;
 }
