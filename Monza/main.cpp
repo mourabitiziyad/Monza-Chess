@@ -7,6 +7,7 @@
 
 #include "constants.hpp"
 
+#include <stdlib.h>
 #include <iostream>
 using namespace std;
 
@@ -276,15 +277,17 @@ int main(int argc, const char * argv[]) {
 //        cout << "bishop is on " << squares[square] << " - " << square << "\n";
 //        board(mask_rook_attacks(square));
 //    }
-    Bitboard attack_mask = mask_rook_attacks(a1);
-    board(attack_mask);
-    int bit_count = count_bits(attack_mask);
-    for (int idx = 0; idx < 4096; idx++) {
-        cout << idx << '\n' << bit_count << '\n';
-        board(get_occupancy_set(idx, bit_count, attack_mask));
-        getchar();
-    }
-    
+//    Bitboard attack_mask = mask_rook_attacks(a1);
+//    board(attack_mask);
+//    int bit_count = count_bits(attack_mask);
+//    for (int idx = 0; idx < 4096; idx++) {
+//        cout << idx << '\n' << bit_count << '\n';
+//        board(get_occupancy_set(idx, bit_count, attack_mask));
+//        getchar();
+//    }
+    Bitboard repre = random_number();
+    board(repre);
+    board(repre & 0xFFFF);
         
     return 0;
 }
