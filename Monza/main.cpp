@@ -35,7 +35,7 @@ void board(Bitboard bitboard) {
             
             !file && cout << (8 - rank) << "  ";
             
-            cout << " " << (bit_on_square(bitboard, (rank * 8 + file)) ? 1 : 0);
+            cout << " " << (bit_on_square(bitboard, (rank * 8 + file)) ? '1' : '.');
         }
         cout << "\n";
     }
