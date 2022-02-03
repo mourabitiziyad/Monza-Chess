@@ -56,6 +56,13 @@ Bitboard pawn_attack_moves[2][64]; // [Side] [Square]
 Bitboard knight_attack_moves[64];
 Bitboard king_attack_moves[64];
 
+Bitboard bishop_attack_masks[64];
+Bitboard bishop_attack_moves[64][512];
+
+Bitboard rook_attack_masks[64];
+Bitboard rook_attack_moves[64][4096];
+
+
 const int bishop_relevant_occupancy_bits[64] = {
   6, 5, 5, 5, 5, 5, 5, 6,
   5, 5, 5, 5, 5, 5, 5, 5,
@@ -267,6 +274,7 @@ void init_non_sliding_pieces(){
     }
 }
 
+// https://www.chessprogramming.org/Looking_for_Magics#Feeding_in_Randoms
 Bitboard find_magic(int square, int bits, int bishop) {
     
     Bitboard occupancies[4096];
@@ -318,9 +326,61 @@ void init_magic() {
     cout << "done!\n";
 }
 
+void init_sliding_pieces(int bishop) {
+    
+    for (int square = 0; square < 64; square++) {
+        
+        bishop_attack_masks[square] = mask_bishop_attacks(square);
+        rook_attack_masks[square] = mask_rook_attacks(square);
+        
+        Bitboard attack = bishop ? bishop_attack_masks[square] : rook_attack_masks[square];
+        
+        int bit_count = count_bits(attack);
+        
+        int occupancy_idx = 1 << bit_count;
+        
+        for (int index = 0; index < occupancy_idx; index++) {
+            if (bishop) {
+                Bitboard occupancy = get_occupancy_set(index, bit_count, attack);
+                int magic_idx = (int)((occupancy * bishop_magics[square]) >> (64 - bishop_relevant_occupancy_bits[square]));
+                bishop_attack_moves[square][magic_idx] = generate_bishop_attacks(square, occupancy);
+            }
+            else {
+                Bitboard occupancy = get_occupancy_set(index, bit_count, attack);
+                int magic_idx = (int)((occupancy * rook_magics[square]) >> (64 - rook_relevant_occupancy_bits[square]));
+                rook_attack_moves[square][magic_idx] = generate_rook_attacks(square, occupancy);
+            }
+        }
+    }
+}
+
+// https://www.chessprogramming.org/Magic_Bitboards#Plain
+
+static inline Bitboard get_bishop_attacks(int square, Bitboard occupancy) {
+    
+    occupancy &= bishop_attack_masks[square];
+    occupancy *= bishop_magics[square];
+    occupancy >>= 64 - bishop_relevant_occupancy_bits[square];
+    return bishop_attack_moves[square][occupancy];
+    
+}
+
+static inline Bitboard get_rook_attacks(int square, Bitboard occupancy) {
+    
+    occupancy &= rook_attack_masks[square];
+    occupancy *= rook_magics[square];
+    occupancy >>= 64 - rook_relevant_occupancy_bits[square];
+    return rook_attack_moves[square][occupancy];
+    
+}
+
 void init() {
+    
     init_non_sliding_pieces();
-    init_magic();
+    init_sliding_pieces(bishop);
+    init_sliding_pieces(rook);
+//  init_magic();
+    
 }
 
 //      +---+---+---+---+---+---+---+---+---+---+
@@ -330,6 +390,17 @@ void init() {
 int main(int argc, const char * argv[]) {
     
     init();
+    Bitboard occupancy = 0ULL;
+    set_bit(occupancy, c5);
+    set_bit(occupancy, f2);
+    set_bit(occupancy, g7);
+    set_bit(occupancy, g5);
+    set_bit(occupancy, e2);
+    set_bit(occupancy, e7);
+    set_bit(occupancy, b2);
+    board(occupancy);
+    board(get_rook_attacks(e5, occupancy));
+    board(get_bishop_attacks(d4, occupancy));
         
     return 0;
 }
