@@ -90,7 +90,7 @@ Bitboard generate_rook_attacks(int square, Bitboard blocker_piece) {
     int t_rank = square / 8;
     int t_file = square % 8;
     
-    cout << "rank: " << t_rank << " file: " << t_file << " " << "\n";
+//    cout << "rank: " << t_rank << " file: " << t_file << " " << "\n";
     
     for (rank = t_rank + 1; rank < 8; rank++) {
         Bitboard square = (1ULL << (rank * 8 + t_file));
@@ -181,7 +181,7 @@ Bitboard mask_rook_attacks(int square) {
     int t_rank = square / 8;
     int t_file = square % 8;
     
-    cout << "rank: " << t_rank << " file: " << t_file << " " << "\n";
+//    cout << "rank: " << t_rank << " file: " << t_file << " " << "\n";
     
     for (rank = t_rank + 1; rank < 7; rank++)
         occu_squares |= (1ULL << (rank * 8 + t_file));
@@ -267,27 +267,69 @@ void init_non_sliding_pieces(){
     }
 }
 
+Bitboard find_magic(int square, int bits, int bishop) {
+    
+    Bitboard occupancies[4096];
+    Bitboard attacks[4096];
+    Bitboard used_attacks[4096];
+    
+    Bitboard mask = bishop ? mask_bishop_attacks(square) : mask_rook_attacks(square);
+    Bitboard occupancy_idx = 1 << bits;
+//    cout << occupancy_idx << '\n';
+    for (int idx = 0; idx < occupancy_idx; idx++){
+        occupancies[idx] = get_occupancy_set(idx, bits, mask);
+        attacks[idx] = bishop ? generate_bishop_attacks(square, occupancies[idx])
+        : generate_rook_attacks(square, occupancies[idx]);
+    }
+    
+    for (int i = 0; i < 100000000; i++) {
+        
+        Bitboard magic_number = random_U64_fewbits();
+        
+        if (count_bits((mask * magic_number) & 0xFF00000000000000) < 6) continue;
+        
+        memset(used_attacks, 0ULL, sizeof(used_attacks));
+    
+        int index, fail;
+        
+        for(index = 0, fail = 0; !fail && index < occupancy_idx; index++) {
+            int magic_index = (int)((occupancies[index] * magic_number) >> (64 - bits));
+            if (used_attacks[magic_index] == 0ULL) used_attacks[magic_index] = attacks[index];
+            else if (used_attacks[magic_index] != attacks[index]) fail = 1;
+            
+        }
+        if (!fail) return magic_number;
+    }
+    cout << "Failed!\n";
+    return 0ULL;
+}
+
+void init_magic() {
+    
+    for (int square = 0; square < 64; square++) {
+        printf("0x%llxULL,\n", find_magic(square, bishop_relevant_occupancy_bits[square], bishop));
+    }
+    
+    cout << "\n\n";
+    
+    for (int square = 0; square < 64; square++) {
+        printf("0x%llxULL,\n", find_magic(square, rook_relevant_occupancy_bits[square], rook));
+    }
+    cout << "done!\n";
+}
+
+void init() {
+    init_non_sliding_pieces();
+    init_magic();
+}
+
 //      +---+---+---+---+---+---+---+---+---+---+
 //      +---+---+---+---+ main  +---+---+---+---+
 //      +---+---+---+---+---+---+---+---+---+---+
 
 int main(int argc, const char * argv[]) {
-    init_non_sliding_pieces();
-//    for (int square = 0; square < 64; square++) {
-//        cout << "bishop is on " << squares[square] << " - " << square << "\n";
-//        board(mask_rook_attacks(square));
-//    }
-//    Bitboard attack_mask = mask_rook_attacks(a1);
-//    board(attack_mask);
-//    int bit_count = count_bits(attack_mask);
-//    for (int idx = 0; idx < 4096; idx++) {
-//        cout << idx << '\n' << bit_count << '\n';
-//        board(get_occupancy_set(idx, bit_count, attack_mask));
-//        getchar();
-//    }
-    Bitboard repre = random_number();
-    board(repre);
-    board(repre & 0xFFFF);
+    
+    init();
         
     return 0;
 }
