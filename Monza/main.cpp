@@ -28,6 +28,28 @@ Bitboard get_occupancy_set(int idx, int bits, Bitboard attacks) {
     return occupancy;
 }
 
+Bitboard piece_bitboards[12];
+Bitboard piece_occupancy[3]; // white, black, both
+
+int turn = 0;
+int castling_rights = 0;
+int en_passant = -1;
+
+char ascii_pieces[] = "PNBRQKpnbrqk";
+
+//                        8  ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜
+//                        7  ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎
+//                        6  . . . . . . . .
+//                        5  . . . . . . . .
+//                        4  . . . . . . . .
+//                        3  . . . . . . . .
+//                        2  ♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙
+//                        1  ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
+//                           a b c d e f g h
+
+char * unicode_pieces[12] = {(char *)"♟︎", (char *)"♞", (char *)"♝", (char *)"♜", (char *)"♛", (char *)"♚", (char *)"♙", (char *)"♘", (char *)"♗", (char *)"♖", (char *)"♕", (char *)"♔"};
+//char unicode_pieces[] = "♟︎♞♝♜♛♚♙♘♗♖♕♔";
+
 void board(Bitboard bitboard) {
     for (int rank=0; rank<8; rank++) {
 //        cout << "   +---+---+---+---+---+---+---+---+\n";
@@ -45,6 +67,36 @@ void board(Bitboard bitboard) {
         cout << " " << i;
     cout << "\n\n    Bitboard: " << bitboard << "\n\n";
     
+}
+
+void styled_board() {
+    cout << "\n";
+    for (int rank=0; rank<8; rank++) {
+//        cout << "   +---+---+---+---+---+---+---+---+\n";
+        for (int file=0; file<8; file++) {
+            
+            !file && cout << (8 - rank) << "  ";
+            
+            int styled_piece = -999;
+            
+            for (int piece=P; piece <= k; piece++)
+                bit_on_square(piece_bitboards[piece], (rank * 8 + file)) && (styled_piece = piece);
+            
+//            cout << " " << (bit_on_square(bitboard, (rank * 8 + file)) ? '1' : '.');
+            printf(" %s", (styled_piece == -999) ? "." : unicode_pieces[styled_piece]);
+        }
+        cout << "\n";
+    }
+//    cout << "   +---+---+---+---+---+---+---+---+\n\n  ";
+    cout << "\n   ";
+    for (char i='A'; i<='H'; i++)
+        cout << " " << i;
+    printf("\n\nTurn:              %s\n", !turn? "White" : "Black");
+    printf("En Passant:        %s\n", (en_passant != -1) ? squares[en_passant] : "No");
+    printf("Castling Rights:   %c%c%c%c\n\n", castling_rights & wk ? 'K': '-',
+                                     castling_rights & wq ? 'Q': '-',
+                                     castling_rights & bk ? 'k': '-',
+                                     castling_rights & bq ? 'q': '-');
 }
 
 //      https://www.chessprogramming.org/Looking_for_Magics
@@ -379,7 +431,7 @@ void init() {
     init_non_sliding_pieces();
     init_sliding_pieces(bishop);
     init_sliding_pieces(rook);
-//  init_magic();
+//    init_magic();
     
 }
 
@@ -390,17 +442,52 @@ void init() {
 int main(int argc, const char * argv[]) {
     
     init();
-    Bitboard occupancy = 0ULL;
-    set_bit(occupancy, c5);
-    set_bit(occupancy, f2);
-    set_bit(occupancy, g7);
-    set_bit(occupancy, g5);
-    set_bit(occupancy, e2);
-    set_bit(occupancy, e7);
-    set_bit(occupancy, b2);
-    board(occupancy);
-    board(get_rook_attacks(e5, occupancy));
-    board(get_bishop_attacks(d4, occupancy));
-        
+    
+    set_bit(piece_bitboards[P], a2);
+    set_bit(piece_bitboards[P], b2);
+    set_bit(piece_bitboards[P], c2);
+    set_bit(piece_bitboards[P], d2);
+    set_bit(piece_bitboards[P], e2);
+    set_bit(piece_bitboards[P], f2);
+    set_bit(piece_bitboards[P], g2);
+    set_bit(piece_bitboards[P], h2);
+    
+    set_bit(piece_bitboards[N], b1);
+    set_bit(piece_bitboards[N], g1);
+    
+    set_bit(piece_bitboards[B], c1);
+    set_bit(piece_bitboards[B], f1);
+    
+    set_bit(piece_bitboards[R], a1);
+    set_bit(piece_bitboards[R], h1);
+    
+    set_bit(piece_bitboards[Q], d1);
+    set_bit(piece_bitboards[K], e1);
+    
+    
+    set_bit(piece_bitboards[p], a7);
+    set_bit(piece_bitboards[p], b7);
+    set_bit(piece_bitboards[p], c7);
+    set_bit(piece_bitboards[p], d7);
+    set_bit(piece_bitboards[p], e7);
+    set_bit(piece_bitboards[p], f7);
+    set_bit(piece_bitboards[p], g7);
+    set_bit(piece_bitboards[p], h7);
+    
+    set_bit(piece_bitboards[n], b8);
+    set_bit(piece_bitboards[n], g8);
+    
+    set_bit(piece_bitboards[b], c8);
+    set_bit(piece_bitboards[b], f8);
+    
+    set_bit(piece_bitboards[r], a8);
+    set_bit(piece_bitboards[r], h8);
+    
+    set_bit(piece_bitboards[q], d8);
+    set_bit(piece_bitboards[k], e8);
+    
+    turn = white;
+    
+    styled_board();
     return 0;
 }
