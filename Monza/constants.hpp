@@ -32,7 +32,19 @@ enum {
 
 enum {
     white,
-    black
+    black,
+    both
+};
+
+enum {
+    wq = 2,
+    bq = 8,
+    wk = 1,
+    bk = 4
+};
+
+enum {
+    P, N, B, R, Q, K, p, n, b, r, q, k
 };
 
 const Bitboard notAFile  = 18374403900871474942ULL; // 0xfefefefefefefefe; // ~0x0101010101010101
