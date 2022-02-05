@@ -9,9 +9,10 @@ Check out Monza on [Lichess](https://lichess.org/@/MonzaEngine)
 ## Currently working on:
 
 - Board Representation
-  - [x] Piece Centric Representation using Bitboards
-  - [x] Defining macros for Bitboard Operations (SET/GET/POP)
-  - [ ] Encoding Pieces on the board
+  - [X] Piece Centric Representation using Bitboards
+  - [X] Defining macros for Bitboard Operations (SET/GET/POP)
+  - [X] Encoding Pieces on the board
+  - [X] FEN Parser
 - Move Generation
   - [X] pre-calculated pawn attack table.
   - [X] pre-calculated knight attack table.
@@ -19,6 +20,7 @@ Check out Monza on [Lichess](https://lichess.org/@/MonzaEngine)
   - [X] Generate Rook attack squares.
   - [X] Generate Bishop attack squares.
   - [X] Limit Rook / Bishop attackes to blocked squares.
+  - [X] Generating Rook / Bishop Magic Numbers
   - [X] pre-calculated sliding pieces attack tables (rook/bishop...) - _Magic Bitboards_
 - Other
   - [X] Define macros for ls1b and count bits
@@ -30,6 +32,12 @@ Check out Monza on [Lichess](https://lichess.org/@/MonzaEngine)
     
 
 ## Features / Todo of Monza
+- Perft
+- Some optimization
+- Search
+- Evaluation
+- GUI
+- Code Cleaning
 
 - WIP
 
