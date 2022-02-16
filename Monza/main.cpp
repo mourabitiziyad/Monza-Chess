@@ -31,7 +31,7 @@ Bitboard get_occupancy_set(int idx, int bits, Bitboard attacks) {
 Bitboard piece_bitboards[12];
 Bitboard piece_occupancy[3]; // white, black, both
 
-int turn = 0;
+int turn = -1;
 int castling_rights = 0;
 int en_passant = -1;
 
@@ -426,6 +426,56 @@ static inline Bitboard get_rook_attacks(int square, Bitboard occupancy) {
     
 }
 
+static inline Bitboard get_queen_attacks(int square, Bitboard occupancy) {
+    return get_rook_attacks(square, occupancy) | get_bishop_attacks(square, occupancy);
+}
+
+void parse_fen(char * fen_string) {
+//    cout << fen_string << '\n';
+    memset(piece_bitboards, 0ULL, sizeof(piece_bitboards));
+    memset(piece_occupancy, 0ULL, sizeof(piece_occupancy));
+    
+    castling_rights = 0;
+    turn = -1;
+    en_passant = -1;
+    
+    for (int square = 0; square < 64 && *fen_string && *fen_string!=' ';) {
+        if (isalpha(*fen_string)) set_bit(piece_bitboards[char_pieces[*fen_string++]], square++);
+        else if (isdigit(*fen_string)) square += (*fen_string++ - '0');
+        else if (*fen_string == '/') *fen_string++;
+        else memset(piece_bitboards, 0ULL, sizeof(piece_bitboards));
+    }
+    *(++fen_string) == 'b' ? (turn = black) : (turn = white);
+    *(fen_string += 2);
+    while (*fen_string != ' ') {
+        switch (*fen_string++) {
+            case 'K': castling_rights |= wk; break;
+            case 'Q': castling_rights |= wq; break;
+            case 'k': castling_rights |= bk; break;
+            case 'q': castling_rights |= bq; break;
+            case '-': break;
+            default: break;
+        }
+    }
+    if (*(++fen_string) != '-') {
+        int file = *fen_string++ - 'a';
+        int rank = 8 - (*fen_string - '0');
+        en_passant = rank * 8 + file;
+    } else {
+        en_passant = -1;
+    }
+    
+    for (int piece = P; piece <= K; piece++) {
+        piece_occupancy[white] |= piece_bitboards[piece];
+    }
+    
+    for (int piece = p; piece <= k; piece++) {
+        piece_occupancy[black] |= piece_bitboards[piece];
+    }
+    
+    piece_occupancy[both] |= (piece_occupancy[white] | piece_occupancy[black]);
+}
+
 void init() {
     
     init_non_sliding_pieces();
@@ -442,52 +492,62 @@ void init() {
 int main(int argc, const char * argv[]) {
     
     init();
+    Bitboard occupancy = 0ULL;
+    set_bit(occupancy, b6);
+    set_bit(occupancy, f6);
+    board(get_queen_attacks(d4, occupancy));
+//    parse_fen(starting_position);
+//
+//    styled_board();
+//    parse_fen(cmk_position);
+//    styled_board();
+//    board(piece_occupancy[both]);
+//    parse_fen(starting_position);
+//    board(piece_occupancy[both]);
+//    styled_board();
     
-    set_bit(piece_bitboards[P], a2);
-    set_bit(piece_bitboards[P], b2);
-    set_bit(piece_bitboards[P], c2);
-    set_bit(piece_bitboards[P], d2);
-    set_bit(piece_bitboards[P], e2);
-    set_bit(piece_bitboards[P], f2);
-    set_bit(piece_bitboards[P], g2);
-    set_bit(piece_bitboards[P], h2);
+//    set_bit(piece_bitboards[P], a2);
+//    set_bit(piece_bitboards[P], b2);
+//    set_bit(piece_bitboards[P], c2);
+//    set_bit(piece_bitboards[P], d2);
+//    set_bit(piece_bitboards[P], e2);
+//    set_bit(piece_bitboards[P], f2);
+//    set_bit(piece_bitboards[P], g2);
+//    set_bit(piece_bitboards[P], h2);
+//
+//    set_bit(piece_bitboards[N], b1);
+//    set_bit(piece_bitboards[N], g1);
+//
+//    set_bit(piece_bitboards[B], c1);
+//    set_bit(piece_bitboards[B], f1);
+//
+//    set_bit(piece_bitboards[R], a1);
+//    set_bit(piece_bitboards[R], h1);
+//
+//    set_bit(piece_bitboards[Q], d1);
+//    set_bit(piece_bitboards[K], e1);
+//
+//
+//    set_bit(piece_bitboards[p], a7);
+//    set_bit(piece_bitboards[p], b7);
+//    set_bit(piece_bitboards[p], c7);
+//    set_bit(piece_bitboards[p], d7);
+//    set_bit(piece_bitboards[p], e7);
+//    set_bit(piece_bitboards[p], f7);
+//    set_bit(piece_bitboards[p], g7);
+//    set_bit(piece_bitboards[p], h7);
+//
+//    set_bit(piece_bitboards[n], b8);
+//    set_bit(piece_bitboards[n], g8);
+//
+//    set_bit(piece_bitboards[b], c8);
+//    set_bit(piece_bitboards[b], f8);
+//
+//    set_bit(piece_bitboards[r], a8);
+//    set_bit(piece_bitboards[r], h8);
+//
+//    set_bit(piece_bitboards[q], d8);
+//    set_bit(piece_bitboards[k], e8);
     
-    set_bit(piece_bitboards[N], b1);
-    set_bit(piece_bitboards[N], g1);
-    
-    set_bit(piece_bitboards[B], c1);
-    set_bit(piece_bitboards[B], f1);
-    
-    set_bit(piece_bitboards[R], a1);
-    set_bit(piece_bitboards[R], h1);
-    
-    set_bit(piece_bitboards[Q], d1);
-    set_bit(piece_bitboards[K], e1);
-    
-    
-    set_bit(piece_bitboards[p], a7);
-    set_bit(piece_bitboards[p], b7);
-    set_bit(piece_bitboards[p], c7);
-    set_bit(piece_bitboards[p], d7);
-    set_bit(piece_bitboards[p], e7);
-    set_bit(piece_bitboards[p], f7);
-    set_bit(piece_bitboards[p], g7);
-    set_bit(piece_bitboards[p], h7);
-    
-    set_bit(piece_bitboards[n], b8);
-    set_bit(piece_bitboards[n], g8);
-    
-    set_bit(piece_bitboards[b], c8);
-    set_bit(piece_bitboards[b], f8);
-    
-    set_bit(piece_bitboards[r], a8);
-    set_bit(piece_bitboards[r], h8);
-    
-    set_bit(piece_bitboards[q], d8);
-    set_bit(piece_bitboards[k], e8);
-    
-    turn = white;
-    
-    styled_board();
     return 0;
 }
