@@ -8,6 +8,7 @@
 #include "constants.hpp"
 
 #include <stdlib.h>
+#include <chrono>
 #include <iostream>
 using namespace std;
 
@@ -786,6 +787,122 @@ void display_move_list(moves *move_list) {
     printf("\nNumber of Moves: %d\n\n", move_list->count);
 }
 
+# define copy()                                                                 \
+    Bitboard piece_bitboards_copy[12], piece_occupancy_copy[3];                 \
+    int turn_copy, en_passant_copy, castling_rights_copy;                       \
+    memcpy(piece_bitboards_copy, piece_bitboards, sizeof(piece_bitboards));     \
+    memcpy(piece_occupancy_copy, piece_occupancy, sizeof(piece_occupancy));     \
+    turn_copy = turn;                                                           \
+    en_passant_copy = en_passant;                                               \
+    castling_rights_copy = castling_rights;
+
+# define take_back()                                                            \
+    memcpy(piece_bitboards, piece_bitboards_copy, sizeof(piece_bitboards));     \
+    memcpy(piece_occupancy, piece_occupancy_copy, sizeof(piece_occupancy));     \
+    turn = turn_copy;                                                           \
+    en_passant = en_passant_copy;                                               \
+    castling_rights = castling_rights_copy;
+
+enum {
+    all,
+    captures
+};
+
+int make_move (int move, int move_flag) {
+    if (move_flag == all) {
+        // preserve the current *legal* board state in case of making an illegal move
+        // we are also providing the option to generate only captures to mitigate the "Horizon Effect"
+        // "The horizon effect can be mitigated by extending the search algorithm with a quiescence search. This gives the search algorithm ability to look beyond its horizon for a certain class of moves of major importance to the game state, such as captures in chess."
+        copy();
+        
+        int source = get_move_source(move);
+        int target = get_move_target(move);
+        int piece = get_move_piece(move);
+        int promoted = get_move_promoted(move);
+        int capture = get_move_capture(move);
+        int doublepush = get_move_double(move);
+        int enpassant = get_move_enpassant(move);
+        int castling = get_move_castling(move);
+        
+        pop_bit(piece_bitboards[piece], source);
+        set_bit(piece_bitboards[piece], target);
+        
+        if (capture) {
+
+            int start = (turn == white) ? p : P;
+            int end = (turn == white) ? k : K;
+            
+            for (int bitboard_piece = start; bitboard_piece <= end; bitboard_piece++) {
+                if (bit_on_square(piece_bitboards[bitboard_piece], target)) {
+                    pop_bit(piece_bitboards[bitboard_piece], target);
+                    break;
+                }
+            }
+        }
+        
+        if (promoted) {
+            pop_bit(piece_bitboards[(turn == white) ? P : p], target);
+            set_bit(piece_bitboards[promoted], target);
+        }
+        
+        if (enpassant)
+            (turn == white) ? pop_bit(piece_bitboards[p], target + 8) : pop_bit(piece_bitboards[P], target - 8);
+        
+        en_passant = -1;
+        
+        if (doublepush) {
+            (turn == white) ? (en_passant = target + 8) : (en_passant = target - 8);
+        }
+        
+        if (castling) {
+            switch (target) {
+                case g1:
+                    pop_bit(piece_bitboards[R], h1);
+                    set_bit(piece_bitboards[R], f1);
+                    break;
+                case c1:
+                    pop_bit(piece_bitboards[R], a1);
+                    set_bit(piece_bitboards[R], d1);
+                    break;
+                case g8:
+                    pop_bit(piece_bitboards[r], h8);
+                    set_bit(piece_bitboards[r], f8);
+                    break;
+                case c8:
+                    pop_bit(piece_bitboards[r], a8);
+                    set_bit(piece_bitboards[r], d8);
+                    break;
+                default:
+                    break;
+            }
+        }
+        
+        castling_rights &= (castling_rights_squares[source] & castling_rights_squares[target]);
+        
+        memset(piece_occupancy, 0ULL, sizeof(piece_occupancy));
+                
+        for (int piece = P; piece <= K; piece++)
+            piece_occupancy[white] |= piece_bitboards[piece];
+        
+        for (int piece = p; piece <= k; piece++)
+            piece_occupancy[black] |= piece_bitboards[piece];
+
+        piece_occupancy[both] |= piece_occupancy[white] | piece_occupancy[black];
+        
+        turn ^= 1;
+        
+        if (is_square_attacked((turn == white) ? ls1b(piece_bitboards[k]) : ls1b(piece_bitboards[K]), turn)) {
+            take_back();
+            return 0;
+        }
+        return 1;
+        
+    } else
+        if (get_move_capture(move))
+            make_move(move, all);
+        return 0;
+}
+
 void init() {
     
     init_non_sliding_pieces();
@@ -802,37 +919,38 @@ void init() {
 int main(int argc, const char * argv[]) {
     
     init();
-//    parse_fen("8/8/4R3/3b4/8/8/8/8 w - - ");
-    parse_fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPpP/R3K2R b KQkq a3 0 1");
+
+    parse_fen((char *)"r3k2r/p1ppqpb1/1n2pnp1/3PN3/1p2P3/2N2Q1p/PPPBqPPP/R3K2R w KQkq - 0 1");
+//    parse_fen((char *) tricky_position);
     styled_board();
-//    board(piece_occupancy[both]);
-//    print_attacked_squares(black);
-//    generate_all_moves();
-//    board(piece_occupancy[both]);
-//    board(piece_occupancy[both]);
-//    styled_board();
     
-//    set_bit(piece_bitboards[P], a2);
-//    set_bit(piece_bitboards[P], b2);
+    
+    auto startTime = chrono::high_resolution_clock::now();
+
     moves move_list[1];
     generate_all_moves(move_list);
     display_move_list(move_list);
-    // exract move items
-//    int source_square = get_move_source(move);
-//    int target_square = get_move_target(move);
-//    int piece = get_move_piece(move);
-//    int promoted_piece = get_move_promoted(move);
-//
-//    // print move items
-//    printf("source square: %s\n", squares[source_square]);
-//    printf("target square: %s\n", squares[target_square]);
-//    printf("piece: %s\n", unicode_pieces[piece]);
-//    printf("piece: %s\n", unicode_pieces[promoted_piece]);
-//    printf("capture flag: %d\n", get_move_capture(move) ? 1 : 0);
-//    printf("double pawn push flag: %d\n", get_move_double(move) ? 1 : 0);
-//    printf("enpassant flag: %d\n", get_move_enpassant(move) ? 1 : 0);
-//    printf("castling flag: %d\n", get_move_castling(move) ? 1 : 0);
-//    printf("test: %c\n", (char)char_pieces[2]);
+    
+
+    
+
+    for (int moves = 0; moves < move_list->count; moves++) {
+        int move = move_list->moves[moves];
+        copy();
+        if (!make_move(move, all)) continue;
+        styled_board();
+        getchar();
+
+        take_back();
+        styled_board();
+        getchar();
+    }
+    
+    auto endTime = chrono::high_resolution_clock::now();
+
+    cout << "Milliseconds: " << chrono::duration_cast < chrono::milliseconds > (endTime - startTime).count() << endl;
+
+    
     
     return 0;
 }
