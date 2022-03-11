@@ -989,6 +989,59 @@ int parse_move(char *move_string) {
     return 0;
 }
 
+static inline int evalaute() {
+    Bitboard board_copy;
+    int square;
+    int score = 0;
+    
+    for (int bb_piece = P; bb_piece <= k; bb_piece++) {
+        board_copy = piece_bitboards[bb_piece];
+        while (board_copy) {
+            square = ls1b(board_copy);
+            score += material_score[bb_piece];
+            switch (bb_piece) {
+                case P:
+                    score += pawn_scores[square];
+                    break;
+                case N:
+                    score += knight_scores[square];
+                    break;
+                case B:
+                    score += bishop_scores[square];
+                    break;
+                case R:
+                    score += rook_scores[square];
+                    break;
+                case K:
+                    score += king_scores[square];
+                    break;
+                
+                case p:
+                    score -= pawn_scores[mirror_scores[square]];
+                    break;
+                case n:
+                    score -= knight_scores[mirror_scores[square]];
+                    break;
+                case b:
+                    score -= bishop_scores[mirror_scores[square]];
+                    break;
+                case r:
+                    score -= rook_scores[mirror_scores[square]];
+                    break;
+                case k:
+                    score -= king_scores[mirror_scores[square]];
+                    break;
+                default:
+                    break;
+            }
+            pop_bit(board_copy, square);
+        }
+    }
+    if (turn == white) {
+        return score;
+    } return -score;
+}
+
 void search_position(int depth) {
     printf("bestmove: d2d4\n");
 }
@@ -1130,7 +1183,12 @@ void UCI_loop() {
 int main(int argc, const char * argv[]) {
     
     init();
-    UCI_loop();
+    
+    parse_fen("rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1");
+    styled_board();
+    printf("score: %d\n", evalaute());
+    
+//    UCI_loop();
 //    parse_fen((char *)r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1);
 //    parse_position((c har *)"position startpos moves e2e4 e7e5");
 //    parse_go("go depth 6");
