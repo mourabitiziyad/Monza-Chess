@@ -765,9 +765,14 @@ void print_attacked_squares(int side)
 }
 
 void display_UCI_move(int move) {
-    printf("%s%s%c\n",  squares[get_move_source(move)],
-                        squares[get_move_target(move)],
-                        promoted_pieces[get_move_promoted(move)]);
+    if (get_move_promoted(move)) {
+        printf("%s%s%c",  squares[get_move_source(move)],
+                            squares[get_move_target(move)],
+                            promoted_pieces[get_move_promoted(move)]);
+    } else {
+        printf("%s%s",  squares[get_move_source(move)],
+                            squares[get_move_target(move)]);
+    }
 }
 
 void display_move_list(moves *move_list) {
@@ -1041,9 +1046,58 @@ static inline int evalaute() {
         return score;
     } return -score;
 }
+// half move
+int ply, best_move;
+
+int negamax(int alpha, int beta, int depth) {
+    if (depth == 0)
+        return evalaute();
+//    nodes++;
+    // best move so far
+    int best_so_far;
+    int old_alpha = alpha; // temp
+    moves move_list[1];
+    generate_all_moves(move_list);
+    for (int count = 0; count < move_list->count; count++) {
+        copy();
+        ply++;
+        if (!make_move(move_list->moves[count], all)) {
+            ply--;
+            continue;
+        }
+        int score = -negamax(-beta, -alpha, depth - 1);
+        take_back();
+        ply--;
+        
+        // fail-hard beta cutoff
+        // the score can't be greater than alpha-beta bounds, soft-hard can.
+        if (score >= beta) {
+            // node (move) fails high
+            return beta;
+        }
+        
+        // better move
+        if (score > alpha) {
+            // pv node (move)
+            alpha = score;
+            if (ply == 0) {
+                // link best move with the best score
+                best_so_far = move_list->moves[count];
+            }
+        }
+    }
+    if (old_alpha != alpha) {
+        best_move = best_so_far;
+    }
+    // move fails low
+    return alpha;
+}
 
 void search_position(int depth) {
-    printf("bestmove: d2d4\n");
+    int score = negamax(-99999, 99999, depth);
+    printf("bestmove ");
+    display_UCI_move(best_move);
+    printf("\n");
 }
 
 /*
@@ -1184,9 +1238,9 @@ int main(int argc, const char * argv[]) {
     
     init();
     
-    parse_fen("rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1");
+    parse_fen(starting_position);
     styled_board();
-    printf("score: %d\n", evalaute());
+    search_position(7);
     
 //    UCI_loop();
 //    parse_fen((char *)r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1);
