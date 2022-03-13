@@ -1054,7 +1054,7 @@ int negamax(int alpha, int beta, int depth) {
         return evalaute();
 //    nodes++;
     // best move so far
-    int best_so_far;
+    int best_so_far = -1;
     int old_alpha = alpha; // temp
     moves move_list[1];
     generate_all_moves(move_list);
@@ -1188,7 +1188,8 @@ void parse_position(char *command) // taken from BBC.c (Code Monkey King)
 void parse_go(char * command) {
     int depth = -1;
     char * current_depth = NULL;
-    if (current_depth = strstr(command, "depth")) {
+    current_depth = strstr(command, "depth");
+    if (current_depth) {
         depth = atoi(current_depth + 6);
     } else depth = 6;
     
@@ -1220,7 +1221,7 @@ void UCI_loop() {
             parse_position(input);
         }
         else if (!strncmp(input, "ucinewgame", 10)) {
-            parse_position("position startpos");
+            parse_position((char *)"position startpos");
         }
         else if (!strncmp(input, "go", 2)) {
             parse_go(input);
@@ -1238,11 +1239,11 @@ int main(int argc, const char * argv[]) {
     
     init();
     
-    parse_fen(starting_position);
-    styled_board();
-    search_position(7);
+//    parse_fen(starting_position);
+//    styled_board();
+//    search_position(7);
     
-//    UCI_loop();
+    UCI_loop();
 //    parse_fen((char *)r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1);
 //    parse_position((c har *)"position startpos moves e2e4 e7e5");
 //    parse_go("go depth 6");
