@@ -443,7 +443,10 @@ void parse_fen(char * fen_string) {
     en_passant = -1;
     
     for (int square = 0; square < 64 && *fen_string && *fen_string!=' ';) {
-        if (isalpha(*fen_string)) set_bit(piece_bitboards[char_pieces[*fen_string++]], square++);
+        if (isalpha(*fen_string)) {
+            int piece_index = find_piece_index(*fen_string++);
+            set_bit(piece_bitboards[piece_index], square++);
+        }
         else if (isdigit(*fen_string)) square += (*fen_string++ - '0');
         else if (*fen_string == '/') fen_string++;
         else memset(piece_bitboards, 0ULL, sizeof(piece_bitboards));
@@ -770,7 +773,8 @@ void display_UCI_move(int move) {
     if (get_move_promoted(move)) {
         printf("%s%s%c",  squares[get_move_source(move)],
                             squares[get_move_target(move)],
-                            promoted_pieces[get_move_promoted(move)]);
+//                            promoted_pieces[get_move_promoted(move)]);
+               find_promoted_piece_index(get_move_promoted(move)));
     } else {
         printf("%s%s",  squares[get_move_source(move)],
                             squares[get_move_target(move)]);
@@ -783,7 +787,10 @@ void display_move_list(moves *move_list) {
         printf("%s%s%c      %s           %d               %d                   %d                 %d\n",
                             squares[get_move_source(move_list->moves[count])],
                             squares[get_move_target(move_list->moves[count])],
-                            get_move_promoted(move_list->moves[count]) ? promoted_pieces[get_move_promoted(move_list->moves[count])] : ' ',
+                            get_move_promoted(move_list->moves[count]) ?
+//               promoted_pieces[get_move_promoted(move_list->moves[count])]
+               find_promoted_piece_index(get_move_promoted(move_list->moves[count]))
+               : ' ',
                             unicode_pieces[get_move_piece(move_list->moves[count])],
                             get_move_capture(move_list->moves[count]) ? 1 : 0,
                             get_move_double(move_list->moves[count]) ? 1 : 0,
@@ -955,7 +962,11 @@ void perft_test(int depth) {
         take_back();
         printf("     move: %s%s%c  nodes: %ld\n", squares[get_move_source(move_list->moves[moves])],
                                                         squares[get_move_target(move_list->moves[moves])],
-                                                        get_move_promoted(move_list->moves[moves]) ? promoted_pieces[get_move_promoted(move_list->moves[moves])] : ' ',
+                                                        get_move_promoted(move_list->moves[moves])
+               ?
+//               promoted_pieces[get_move_promoted(move_list->moves[moves])]
+               find_promoted_piece_index(get_move_promoted(move_list->moves[moves]))
+               : ' ',
                                                         old_nodes);
     }
     auto endTime = chrono::high_resolution_clock::now();
@@ -1242,7 +1253,7 @@ int main(int argc, const char * argv[]) {
     init();
     
 //    moves move_list[1];
-//    parse_fen(starting_position);
+//    parse_fen("r3k2r/p1Ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
 //    styled_board();
 //    generate_all_moves(move_list);
 //    display_move_list(move_list);

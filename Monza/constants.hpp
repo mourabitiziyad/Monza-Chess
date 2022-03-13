@@ -81,31 +81,105 @@ enum {
     P, N, B, R, Q, K, p, n, b, r, q, k
 };
 
-extern int char_pieces[] = {
-    ['P'] = P,
-    ['N'] = N,
-    ['B'] = B,
-    ['R'] = R,
-    ['Q'] = Q,
-    ['K'] = K,
-    ['p'] = p,
-    ['n'] = n,
-    ['b'] = b,
-    ['r'] = r,
-    ['q'] = q,
-    ['k'] = k
-};
+// int char_pieces[] = {
+//     ['P'] = P,
+//     ['N'] = N,
+//     ['B'] = B,
+//     ['R'] = R,
+//     ['Q'] = Q,
+//     ['K'] = K,
+//     ['p'] = p,
+//     ['n'] = n,
+//     ['b'] = b,
+//     ['r'] = r,
+//     ['q'] = q,
+//     ['k'] = k
+// };
 
-extern char promoted_pieces[] = {
-    [Q] = 'q',
-    [R] = 'r',
-    [B] = 'b',
-    [N] = 'n',
-    [q] = 'q',
-    [r] = 'r',
-    [b] = 'b',
-    [n] = 'n',
-};
+int find_piece_index(char piece) {
+    switch (piece) {
+        case 'P':
+             return P;
+            break;
+        case 'N':
+             return N;
+            break;
+        case 'B':
+             return B;
+            break;
+        case 'R':
+             return R;
+            break;
+        case 'Q':
+             return Q;
+            break;
+        case 'K':
+             return K;
+            break;
+        case 'p':
+             return p;
+            break;
+        case 'n':
+             return n;
+            break;
+        case 'b':
+             return b;
+            break;
+        case 'r':
+             return r;
+            break;
+        case 'q':
+             return q;
+            break;
+        case 'k':
+             return k;
+            break;
+        default:
+            return -1;
+    }
+}
+
+char find_promoted_piece_index(int piece) {
+    switch (piece) {
+        case N:
+             return 'n';
+            break;
+        case B:
+             return 'b';
+            break;
+        case R:
+             return 'r';
+            break;
+        case Q:
+             return 'q';
+            break;
+        case n:
+             return 'n';
+            break;
+        case b:
+             return 'b';
+            break;
+        case r:
+             return 'r';
+            break;
+        case q:
+             return 'q';
+            break;
+        default:
+            return -1;
+    }
+}
+
+//char promoted_pieces[] = {
+//    [Q] = 'q',
+//    [R] = 'r',
+//    [B] = 'b',
+//    [N] = 'n',
+//    [q] = 'q',
+//    [r] = 'r',
+//    [b] = 'b',
+//    [n] = 'n',
+//};
 
 
 const Bitboard notAFile  = 18374403900871474942ULL; // 0xfefefefefefefefe; // ~0x0101010101010101
