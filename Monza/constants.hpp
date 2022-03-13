@@ -9,6 +9,7 @@
 #define constants_hpp
 
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 
 #endif /* constants_hpp */
@@ -80,7 +81,7 @@ enum {
     P, N, B, R, Q, K, p, n, b, r, q, k
 };
 
-int char_pieces[] = {
+extern int char_pieces[] = {
     ['P'] = P,
     ['N'] = N,
     ['B'] = B,
@@ -95,7 +96,7 @@ int char_pieces[] = {
     ['k'] = k
 };
 
-char promoted_pieces[] = {
+extern char promoted_pieces[] = {
     [Q] = 'q',
     [R] = 'r',
     [B] = 'b',

@@ -7,6 +7,8 @@
 
 #include "constants.hpp"
 
+#include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <chrono>
 #include <iostream>
@@ -1239,8 +1241,11 @@ int main(int argc, const char * argv[]) {
     
     init();
     
+//    moves move_list[1];
 //    parse_fen(starting_position);
 //    styled_board();
+//    generate_all_moves(move_list);
+//    display_move_list(move_list);
 //    search_position(7);
     
     UCI_loop();
