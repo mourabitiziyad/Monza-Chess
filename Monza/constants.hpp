@@ -38,8 +38,13 @@ const int castling_rights_squares[64] = {
     13, 15, 15, 15, 12, 15, 15, 14
 };
 
+# define max_ply 64
+
 int killer[2][64];
 int history_moves[12][64];
+
+int pv_length[max_ply];
+int pv_table[max_ply][max_ply];
 
 typedef struct moves {
     int moves[256];
