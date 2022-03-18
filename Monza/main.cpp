@@ -1194,14 +1194,19 @@ int negamax(int alpha, int beta, int depth) {
         // the score can't be greater than alpha-beta bounds, soft-hard can.
         if (score >= beta) {
             // node (move) fails high
-            killer[1][ply] = killer[0][ply];
-            killer[0][ply] = move_list->moves[count];
+            if (!get_move_capture(move_list->moves[count])) {
+                killer[1][ply] = killer[0][ply];
+                killer[0][ply] = move_list->moves[count];
+            }
             return beta;
         }
         
         // better move
         if (score > alpha) {
-            history_moves[get_move_piece(move_list->moves[count])][get_move_target(move_list->moves[count])] += depth;
+            if (!get_move_capture(move_list->moves[count])) {
+                history_moves[get_move_piece(move_list->moves[count])][get_move_target(move_list->moves[count])] += depth;
+            }
+            
             // pv node (move)
             alpha = score;
             if (ply == 0) {
@@ -1370,19 +1375,19 @@ void UCI_loop() {
 int main(int argc, const char * argv[]) {
     
     init();
-//    parse_fen(tricky_position);
-//    styled_board();
-//
-//    // create move list instance
-//    moves move_list[1];
-//
-//    // generate moves
-//    generate_all_moves(move_list);
-//    search_position(5);
+    parse_fen(killer_position);
+    styled_board();
+
+    // create move list instance
+    moves move_list[1];
+
+    // generate moves
+    generate_all_moves(move_list);
+    search_position(5);
             
             // print move scores
     
-    UCI_loop();
+//    UCI_loop();
 //    parse_fen(tricky_position);
 //    styled_board();
 //    moves move_list[1];
