@@ -38,6 +38,9 @@ const int castling_rights_squares[64] = {
     13, 15, 15, 15, 12, 15, 15, 14
 };
 
+int killer[2][64];
+int history_moves[12][64];
+
 typedef struct moves {
     int moves[256];
     int count = 0;

@@ -1007,7 +1007,7 @@ int parse_move(char *move_string) {
     return 0;
 }
 
-static inline int evalaute() {
+static inline int evaluate() {
     Bitboard board_copy;
     int square;
     int score = 0;
@@ -1075,17 +1075,20 @@ static inline int score_move(int move) {
                 break;
             }
         }
-        return mvv_lva[get_move_piece(move)][target];
+        return mvv_lva[get_move_piece(move)][target] + 10000;
     }
-//    else {
-//
-//    }
+    else {
+        if (killer[0][ply] == move) return 9000;
+        else if (killer[1][ply] == move) return 8000;
+        else return history_moves[get_move_piece(move)][get_move_target(move)];
+
+    }
     return 0;
 }
 
 void display_move_score(moves * move_list) {
     printf("Move Scores:\n\n");
-    for (int count = 0; count <= move_list->count; count++) {
+    for (int count = 0; count < move_list->count; count++) {
         display_UCI_move(move_list->moves[count]);
         printf(" score: %d\n", score_move(move_list->moves[count]));
     }
@@ -1093,7 +1096,7 @@ void display_move_score(moves * move_list) {
 
 static inline void sort_moves(moves *move_list) {
     int scores[move_list->count];
-    for (int cnt = 0; cnt <= move_list->count; cnt++) {
+    for (int cnt = 0; cnt < move_list->count; cnt++) {
         scores[cnt] = score_move(move_list->moves[cnt]);
     }
     for (int current_move = 0; current_move < move_list->count; current_move++)
@@ -1116,7 +1119,7 @@ static inline void sort_moves(moves *move_list) {
 
 static inline int quiescence(int alpha, int beta) {
     nodes++;
-    int evaluation = evalaute();
+    int evaluation = evaluate();
     
     if (evaluation >= beta) {
         // node (move) fails high
@@ -1191,11 +1194,14 @@ int negamax(int alpha, int beta, int depth) {
         // the score can't be greater than alpha-beta bounds, soft-hard can.
         if (score >= beta) {
             // node (move) fails high
+            killer[1][ply] = killer[0][ply];
+            killer[0][ply] = move_list->moves[count];
             return beta;
         }
         
         // better move
         if (score > alpha) {
+            history_moves[get_move_piece(move_list->moves[count])][get_move_target(move_list->moves[count])] += depth;
             // pv node (move)
             alpha = score;
             if (ply == 0) {
@@ -1364,20 +1370,29 @@ void UCI_loop() {
 int main(int argc, const char * argv[]) {
     
     init();
-    
-    parse_fen(tricky_position); en_passant = c6;
-            styled_board();
-            
-            // create move list instance
-            moves move_list[1];
-            
-            // generate moves
-            generate_all_moves(move_list);
-    search_position(7);
+//    parse_fen(tricky_position);
+//    styled_board();
+//
+//    // create move list instance
+//    moves move_list[1];
+//
+//    // generate moves
+//    generate_all_moves(move_list);
+//    search_position(5);
             
             // print move scores
     
-//    UCI_loop();
+    UCI_loop();
+//    parse_fen(tricky_position);
+//    styled_board();
+//    moves move_list[1];
+//    generate_all_moves(move_list);
+//    display_move_list(move_list);
+//    killer[0][ply] = move_list->moves[3];
+//    killer[1][ply] = move_list->moves[2];
+//    display_move_score(move_list);
+//    sort_moves(move_list);
+//    display_move_score(move_list);
 
 //    int move = parse_move((char *)"g2g1q");
 //    if (move) {
