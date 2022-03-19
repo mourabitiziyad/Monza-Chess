@@ -43,6 +43,8 @@ const int castling_rights_squares[64] = {
 int pv_length[max_ply];
 int pv_table[max_ply][max_ply];
 
+int is_following_pv, score_pv;
+
 int killer[2][max_ply];
 int history_moves[12][64];
 

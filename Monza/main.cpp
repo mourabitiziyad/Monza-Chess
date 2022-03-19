@@ -1063,6 +1063,12 @@ static inline int evaluate() {
 int ply;
 
 static inline int score_move(int move) {
+    if (score_pv) {
+        if (pv_table[0][ply] == move) {
+            score_pv = 0;
+            return 20000;
+        }
+    }
     if (get_move_capture(move)) {
         int target = P;
         
@@ -1163,8 +1169,20 @@ static inline int quiescence(int alpha, int beta) {
     return alpha;
 }
 
+static inline void enable_pv_scoring(moves * move_list) {
+    is_following_pv = 0;
+    for (int count = 0; count < move_list->count; count++) {
+        if (pv_table[0][ply] == move_list->moves[count]) {
+            score_pv = 1;
+            is_following_pv = 1;
+        }
+    }
+}
+
 int negamax(int alpha, int beta, int depth) {
     pv_length[ply] = ply;
+    int score = 0;
+    int pv_found = 0;
     if (depth == 0)
         return quiescence(alpha, beta);
     if (ply > max_ply - 1) {
@@ -1174,11 +1192,11 @@ int negamax(int alpha, int beta, int depth) {
     int is_king_in_check = is_square_attacked((turn == white ? ls1b(piece_bitboards[K]) : ls1b(piece_bitboards[k])), turn ^ 1);
     if (is_king_in_check) depth++;
     int legal_moves_count = 0;
-    // best move so far
-    // int best_so_far = -1;
-    // int old_alpha = alpha; // temp
     moves move_list[1];
     generate_all_moves(move_list);
+    if (is_following_pv) {
+        enable_pv_scoring(move_list);
+    }
     
     sort_moves(move_list);
     
@@ -1190,7 +1208,10 @@ int negamax(int alpha, int beta, int depth) {
             continue;
         }
         legal_moves_count++;
-        int score = -negamax(-beta, -alpha, depth - 1);
+        if (pv_found) {
+            score = -negamax(-alpha - 1, -alpha, depth - 1);
+            if ((score > alpha) && (score < beta)) score = -negamax(-beta, -alpha, depth - 1);
+        } else score = -negamax(-beta, -alpha, depth - 1);
         take_back();
         ply--;
         
@@ -1214,15 +1235,13 @@ int negamax(int alpha, int beta, int depth) {
             // pv node (move)
 
             alpha = score;
+            pv_found = 1;
+            
             pv_table[ply][ply] = move_list->moves[count];
             for (int next_ply = ply + 1; next_ply < pv_length[ply + 1]; next_ply++) {
               pv_table[ply][next_ply] = pv_table[ply + 1][next_ply];
             }
             pv_length[ply] = pv_length[ply + 1];
-            // if (ply == 0) {
-            //     // link best move with the best score
-            //     best_so_far = move_list->moves[count];
-            // }
         }
     }
     if (!legal_moves_count) {
@@ -1241,6 +1260,8 @@ void search_position(int depth) {
 
     nodes = 0;
     int score = 0;
+    is_following_pv = 0;
+    score_pv = 0;
 
     memset(killer, 0, sizeof(killer));
     memset(history_moves, 0, sizeof(history_moves));
@@ -1248,14 +1269,15 @@ void search_position(int depth) {
     memset(pv_length, 0, sizeof(pv_length));
 
     for (int current_depth = 1; current_depth <= depth; current_depth++) {
-      score = negamax(-99999, 99999, current_depth);
-      printf("info score cp %d depth %d nodes %lld pv ", score, current_depth, nodes);
+        is_following_pv = 1;
+        score = negamax(-99999, 99999, current_depth);
+        printf("info score cp %d depth %d nodes %lld pv ", score, current_depth, nodes);
 
-      for (int count = 0; count < pv_length[0]; count++) {
-        display_UCI_move(pv_table[0][count]);
-        printf(" ");
-      }
-      printf("\n");
+        for (int count = 0; count < pv_length[0]; count++) {
+            display_UCI_move(pv_table[0][count]);
+            printf(" ");
+        }
+        printf("\n");
     }
 
     printf("bestmove ");
@@ -1403,19 +1425,19 @@ int main(int argc, const char * argv[]) {
     
     init();
     // position fen rnbqkbnr/8/p7/Ppppppp1/1PPPPPPp/7P/8/RNBQKBNR w KQkq - 0 10
-//    parse_fen("rnbqkbnr/8/p7/Ppppppp1/1PPPPPPp/7P/8/RNBQKBNR w KQkq - 0 10");
-//    styled_board();
-//
-//    // create move list instance
-//    moves move_list[1];
-//
-//    // generate moves
-//    generate_all_moves(move_list);
-//    search_position(6);
+    parse_fen(tricky_position);
+    styled_board();
+
+    // create move list instance
+    moves move_list[1];
+
+    // generate moves
+    generate_all_moves(move_list);
+    search_position(8);
             
             // print move scores
     
-    UCI_loop();
+//    UCI_loop();
 //    parse_fen(tricky_position);
 //    styled_board();
 //    moves move_list[1];
