@@ -40,11 +40,11 @@ const int castling_rights_squares[64] = {
 
 # define max_ply 64
 
-int killer[2][64];
-int history_moves[12][64];
-
 int pv_length[max_ply];
 int pv_table[max_ply][max_ply];
+
+int killer[2][max_ply];
+int history_moves[12][64];
 
 typedef struct moves {
     int moves[256];
@@ -531,8 +531,8 @@ unsigned int random_number(){
 
 Bitboard random_U64_number(){
     Bitboard un1, un2, un3, un4;
-    un1 = (Bitboard)(random_number()) & 0xFFFF; un2 = (Bitboard)(random_number()) & 0xFFFF;
-    un3 = (Bitboard)(random_number()) & 0xFFFF; un4 = (Bitboard)(random_number()) & 0xFFFF;
+    un1 = (Bitboard)(random()) & 0xFFFF; un2 = (Bitboard)(random()) & 0xFFFF;
+    un3 = (Bitboard)(random()) & 0xFFFF; un4 = (Bitboard)(random()) & 0xFFFF;
     return un1 | (un2 << 16) | (un3 << 32) | (un4 << 48);
 }
 

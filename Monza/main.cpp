@@ -941,7 +941,7 @@ static inline void perft_driver(int depth) {
         copy();
         if (!make_move(move_list->moves[moves], all)) continue;
         perft_driver(depth - 1);
-        take_back();    
+        take_back();
 //        display_UCI_move(move_list->moves[moves]);
     }
 }
@@ -1167,13 +1167,16 @@ int negamax(int alpha, int beta, int depth) {
     pv_length[ply] = ply;
     if (depth == 0)
         return quiescence(alpha, beta);
-    if (ply > max_ply - 1) return evaluate();
+    if (ply > max_ply - 1) {
+      return evaluate();
+    }
     nodes++;
     int is_king_in_check = is_square_attacked((turn == white ? ls1b(piece_bitboards[K]) : ls1b(piece_bitboards[k])), turn ^ 1);
     if (is_king_in_check) depth++;
     int legal_moves_count = 0;
-    
-    
+    // best move so far
+    // int best_so_far = -1;
+    // int old_alpha = alpha; // temp
     moves move_list[1];
     generate_all_moves(move_list);
     
@@ -1209,12 +1212,17 @@ int negamax(int alpha, int beta, int depth) {
             }
             
             // pv node (move)
+
             alpha = score;
             pv_table[ply][ply] = move_list->moves[count];
-            for (int n_ply = ply + 1; n_ply < pv_length[ply + 1]; n_ply++)
-                pv_table[ply][n_ply] = pv_table[ply + 1][n_ply];
+            for (int next_ply = ply + 1; next_ply < pv_length[ply + 1]; next_ply++) {
+              pv_table[ply][next_ply] = pv_table[ply + 1][next_ply];
+            }
             pv_length[ply] = pv_length[ply + 1];
-            
+            // if (ply == 0) {
+            //     // link best move with the best score
+            //     best_so_far = move_list->moves[count];
+            // }
         }
     }
     if (!legal_moves_count) {
@@ -1222,35 +1230,38 @@ int negamax(int alpha, int beta, int depth) {
             return -49000 + ply;
         return 0;
     }
-
+    // if (old_alpha != alpha) {
+    //     best_move = best_so_far;
+    // }
     // move fails low
     return alpha;
 }
 
 void search_position(int depth) {
-    
+
+    nodes = 0;
+    int score = 0;
+
     memset(killer, 0, sizeof(killer));
     memset(history_moves, 0, sizeof(history_moves));
     memset(pv_table, 0, sizeof(pv_table));
     memset(pv_length, 0, sizeof(pv_length));
-    
-    int score = 0;
-    nodes = 0;
-    
-    for (int curr_depth = 1; curr_depth <= depth; curr_depth++) {
-        
-        score = negamax(-99999, 99999, curr_depth);
-        printf("info score cp %d depth %d nodes %lld pv ", score, curr_depth, nodes);
-        for (int cnt = 0; cnt < pv_length[0]; cnt++) {
-            display_UCI_move(pv_table[0][cnt]);
-            printf(" ");
-        }
-        cout << endl;
+
+    for (int current_depth = 1; current_depth <= depth; current_depth++) {
+      score = negamax(-99999, 99999, current_depth);
+      printf("info score cp %d depth %d nodes %lld pv ", score, current_depth, nodes);
+
+      for (int count = 0; count < pv_length[0]; count++) {
+        display_UCI_move(pv_table[0][count]);
+        printf(" ");
+      }
+      printf("\n");
     }
-    
+
     printf("bestmove ");
     display_UCI_move(pv_table[0][0]);
     printf("\n");
+
 }
 
 /*
@@ -1390,16 +1401,17 @@ void UCI_loop() {
 
 int main(int argc, const char * argv[]) {
     
-//    init();
-//    parse_fen(killer_position);
+    init();
+    // position fen rnbqkbnr/8/p7/Ppppppp1/1PPPPPPp/7P/8/RNBQKBNR w KQkq - 0 10
+//    parse_fen("rnbqkbnr/8/p7/Ppppppp1/1PPPPPPp/7P/8/RNBQKBNR w KQkq - 0 10");
 //    styled_board();
-
-    // create move list instance
+//
+//    // create move list instance
 //    moves move_list[1];
-
-    // generate moves
+//
+//    // generate moves
 //    generate_all_moves(move_list);
-//    search_position(10);
+//    search_position(6);
             
             // print move scores
     
