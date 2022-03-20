@@ -1179,10 +1179,12 @@ static inline void enable_pv_scoring(moves * move_list) {
     }
 }
 
+const int full_depth_moves = 4;
+const int reduction_limit = 3;
+
 int negamax(int alpha, int beta, int depth) {
     pv_length[ply] = ply;
     int score = 0;
-    int pv_found = 0;
     if (depth == 0)
         return quiescence(alpha, beta);
     if (ply > max_ply - 1) {
@@ -1200,6 +1202,8 @@ int negamax(int alpha, int beta, int depth) {
     
     sort_moves(move_list);
     
+    int moves_searched = 0;
+    
     for (int count = 0; count < move_list->count; count++) {
         copy();
         ply++;
@@ -1207,12 +1211,25 @@ int negamax(int alpha, int beta, int depth) {
             ply--;
             continue;
         }
+        
         legal_moves_count++;
-        if (pv_found) {
-            score = -negamax(-alpha - 1, -alpha, depth - 1);
-            if ((score > alpha) && (score < beta)) score = -negamax(-beta, -alpha, depth - 1);
-        } else score = -negamax(-beta, -alpha, depth - 1);
+        
+        if (!moves_searched)
+            score = -negamax(-beta, -alpha, depth - 1);
+        else {
+            if (moves_searched >= full_depth_moves && depth >= reduction_limit && !is_king_in_check && !get_move_capture(move_list->moves[count]) && !get_move_promoted(move_list->moves[count]))
+                score = -negamax(-alpha - 1, -alpha, depth - 2);
+            else score = alpha + 1;
+            
+            if (score > alpha) {
+                score = -negamax(-alpha - 1, -alpha, depth-1);
+                if((score > alpha) && (score < beta))
+                    score = -negamax(-beta, -alpha, depth-1);
+            }
+        }
+        
         take_back();
+        moves_searched++;
         ply--;
         
         // fail-hard beta cutoff
@@ -1235,7 +1252,6 @@ int negamax(int alpha, int beta, int depth) {
             // pv node (move)
 
             alpha = score;
-            pv_found = 1;
             
             pv_table[ply][ply] = move_list->moves[count];
             for (int next_ply = ply + 1; next_ply < pv_length[ply + 1]; next_ply++) {
