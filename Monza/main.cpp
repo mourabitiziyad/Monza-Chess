@@ -1124,6 +1124,8 @@ static inline void sort_moves(moves *move_list) {
 }
 
 static inline int quiescence(int alpha, int beta) {
+    
+    if((nodes & 2047) == 0) communicate();
     nodes++;
     int evaluation = evaluate();
     
@@ -1183,6 +1185,7 @@ const int full_depth_moves = 4;
 const int reduction_limit = 3;
 
 int negamax(int alpha, int beta, int depth) {
+    if((nodes & 2047) == 0) communicate();
     pv_length[ply] = ply;
     int score = 0;
     if (depth == 0)
@@ -1200,6 +1203,7 @@ int negamax(int alpha, int beta, int depth) {
         en_passant = -1;
         int score = -negamax(-beta, -beta + 1, depth - 1 - 2);
         take_back();
+        if (stopped) return 0;
         if (score >= beta) {
             return beta;
         }
@@ -1288,6 +1292,7 @@ void search_position(int depth) {
     int score = 0;
     is_following_pv = 0;
     score_pv = 0;
+    stopped = 0;
 
     memset(killer, 0, sizeof(killer));
     memset(history_moves, 0, sizeof(history_moves));
@@ -1295,6 +1300,7 @@ void search_position(int depth) {
     memset(pv_length, 0, sizeof(pv_length));
 
     for (int current_depth = 1; current_depth <= depth; current_depth++) {
+        if (stopped) break;
         is_following_pv = 1;
         score = negamax(-99999, 99999, current_depth);
         
@@ -1398,16 +1404,55 @@ void parse_position(char *command) // taken from BBC.c (Code Monkey King)
     styled_board();
 }
 
-void parse_go(char * command) {
+//void parse_go(char * command) {
+//    int depth = -1;
+//    char * current_depth = NULL;
+//    current_depth = strstr(command, "depth");
+//    if (current_depth) {
+//        depth = atoi(current_depth + 6);
+//    } else depth = 6;
+//
+//    search_position(depth);
+//    // call search pos given depth
+//}
+
+void parse_go(char *command) {
     int depth = -1;
-    char * current_depth = NULL;
-    current_depth = strstr(command, "depth");
-    if (current_depth) {
-        depth = atoi(current_depth + 6);
-    } else depth = 6;
+    char *argument = NULL;
+    if ((argument = strstr(command,"infinite"))) {}
+    if ((argument = strstr(command,"binc")) && turn == black)
+        inc = atoi(argument + 5);
+    if ((argument = strstr(command,"winc")) && turn == white)
+        inc = atoi(argument + 5);
+    if ((argument = strstr(command,"wtime")) && turn == white)
+        time_ = atoi(argument + 6);
+    if ((argument = strstr(command,"btime")) && turn == black)
+        time_ = atoi(argument + 6);
+    if ((argument = strstr(command,"movestogo")))
+        movestogo = atoi(argument + 10);
+    if ((argument = strstr(command,"movetime")))
+        movetime = atoi(argument + 9);
+    if ((argument = strstr(command,"depth")))
+        depth = atoi(argument + 6);
+    if(movetime != -1) {
+        time_ = movetime;
+        movestogo = 1;
+    }
+    starttime = get_time_ms();
+    depth = depth;
+    if(time_ != -1) {
+        timeset = 1;
+        time_ /= movestogo;
+        time_ -= 50;
+        stoptime = starttime + time_ + inc;
+    }
     
+    if (depth == -1) depth = 64;
+    printf("time:%d start:%d stop:%d depth:%d timeset:%d\n",
+    time_, starttime, stoptime, depth, timeset);
+
+    // search position
     search_position(depth);
-    // call search pos given depth
 }
 
 void UCI_loop() {
@@ -1452,19 +1497,19 @@ int main(int argc, const char * argv[]) {
     
     init();
     // position fen rnbqkbnr/8/p7/Ppppppp1/1PPPPPPp/7P/8/RNBQKBNR w KQkq - 0 10
-    parse_fen(tricky_position);
-    styled_board();
-
-    // create move list instance
-    moves move_list[1];
-
-    // generate moves
-    generate_all_moves(move_list);
-    search_position(8);
+//    parse_fen(tricky_position);
+//    styled_board();
+//
+//    // create move list instance
+//    moves move_list[1];
+//
+//    // generate moves
+//    generate_all_moves(move_list);
+//    search_position(8);
             
             // print move scores
     
-//    UCI_loop();
+    UCI_loop();
 //    parse_fen(tricky_position);
 //    styled_board();
 //    moves move_list[1];
