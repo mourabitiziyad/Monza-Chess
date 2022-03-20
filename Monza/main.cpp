@@ -1194,6 +1194,16 @@ int negamax(int alpha, int beta, int depth) {
     int is_king_in_check = is_square_attacked((turn == white ? ls1b(piece_bitboards[K]) : ls1b(piece_bitboards[k])), turn ^ 1);
     if (is_king_in_check) depth++;
     int legal_moves_count = 0;
+    if (depth >= 3 && is_king_in_check == 0 && ply) {
+        copy();
+        turn ^= 1;
+        en_passant = -1;
+        int score = -negamax(-beta, -beta + 1, depth - 1 - 2);
+        take_back();
+        if (score >= beta) {
+            return beta;
+        }
+    }
     moves move_list[1];
     generate_all_moves(move_list);
     if (is_following_pv) {
@@ -1287,6 +1297,7 @@ void search_position(int depth) {
     for (int current_depth = 1; current_depth <= depth; current_depth++) {
         is_following_pv = 1;
         score = negamax(-99999, 99999, current_depth);
+        
         printf("info score cp %d depth %d nodes %lld pv ", score, current_depth, nodes);
 
         for (int count = 0; count < pv_length[0]; count++) {
