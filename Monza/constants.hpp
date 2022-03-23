@@ -21,6 +21,11 @@
     # include <sys/time.h>
 #endif
 
+int turn = -1;
+int castling_rights = 0;
+int en_passant = -1;
+
+
 int quit = 0;
 int movestogo = 30;
 int movetime = -1;
@@ -166,7 +171,18 @@ void add_move(moves *move_list, int move) {
     move_list->moves[move_list->count] = move;
     move_list->count++;
 }
+
 typedef unsigned long long Bitboard;
+
+Bitboard piece_bitboards[12];
+Bitboard piece_occupancy[3]; // white, black, both
+
+Bitboard piece_keys[12][64];
+Bitboard enpassant_keys[64];
+Bitboard castling_keys[16];
+Bitboard turn_key;
+Bitboard hash_key;
+
 enum {
     a8, b8, c8, d8, e8, f8, g8, h8,
     a7, b7, c7, d7, e7, f7, g7, h7,
@@ -624,7 +640,7 @@ const int mirror_scores[128] =
 
 # define empty_board "8/8/8/8/8/8/8/8 b - - "
 # define starting_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-# define tricky_position "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "
+# define tricky_position "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
 # define killer_position "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1"
 # define cmk_position "r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9 "
 
@@ -656,3 +672,34 @@ Bitboard random_U64_fewbits() {
 // There could obviously be better, more efficient ways of doing this.
 // It depends on whether or not its impact is significant enough to adopt it.
 // https://en.wikipedia.org/wiki/Xorshift#Example_implementation
+
+void init_rand_keys() {
+    
+    initial_random = 1804289383;
+    
+    for (int piece = P; piece <= k; piece++) for (int sq = 0; sq < 64; sq++) piece_keys[piece][sq] = random_U64_number();
+    for (int sq = 0; sq < 64; sq++) enpassant_keys[sq] = random_U64_number();
+    for (int idx = 0; idx < 16; idx++) castling_keys[idx] = random_U64_number();
+    
+    turn_key = random_U64_number();
+}
+
+Bitboard generate_hash() {
+    Bitboard key = 0ULL;
+    Bitboard bitboard_copy;
+    
+    for (int piece = P; piece <= k; piece++) {
+        bitboard_copy = piece_bitboards[piece];
+        while (bitboard_copy) {
+            int sq = ls1b(bitboard_copy);
+            key ^= piece_keys[piece][sq];
+            pop_bit(bitboard_copy, sq);
+        }
+    }
+    
+    if (en_passant != -1) key ^= enpassant_keys[en_passant];
+    key ^= castling_keys[castling_rights];
+    if (turn == black) key ^= turn_key;
+    
+    return key;
+}

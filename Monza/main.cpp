@@ -7,6 +7,7 @@
 
 #include "constants.hpp"
 
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -30,13 +31,6 @@ Bitboard get_occupancy_set(int idx, int bits, Bitboard attacks) {
     }
     return occupancy;
 }
-
-Bitboard piece_bitboards[12];
-Bitboard piece_occupancy[3]; // white, black, both
-
-int turn = -1;
-int castling_rights = 0;
-int en_passant = -1;
 
 char ascii_pieces[] = "PNBRQKpnbrqk";
 
@@ -96,10 +90,11 @@ void styled_board() {
         cout << " " << i;
     printf("\n\nTurn:              %s\n", !turn? "White" : "Black");
     printf("En Passant:        %s\n", (en_passant != -1) ? squares[en_passant] : "No");
-    printf("Castling Rights:   %c%c%c%c\n\n", castling_rights & wk ? 'K': '-',
+    printf("Castling Rights:   %c%c%c%c\n", castling_rights & wk ? 'K': '-',
                                      castling_rights & wq ? 'Q': '-',
                                      castling_rights & bk ? 'k': '-',
                                      castling_rights & bq ? 'q': '-');
+    printf("Hash Key:          %llx\n\n", hash_key);
 }
 
 //      https://www.chessprogramming.org/Looking_for_Magics
@@ -480,6 +475,8 @@ void parse_fen(char * fen_string) {
     }
     
     piece_occupancy[both] |= (piece_occupancy[white] | piece_occupancy[black]);
+    
+    hash_key = generate_hash();
 }
 
 static inline int is_square_attacked(int square, int side) {
@@ -808,14 +805,16 @@ void display_move_list(moves *move_list) {
     memcpy(piece_occupancy_copy, piece_occupancy, sizeof(piece_occupancy));     \
     turn_copy = turn;                                                           \
     en_passant_copy = en_passant;                                               \
-    castling_rights_copy = castling_rights;
+    castling_rights_copy = castling_rights;                                     \
+    Bitboard hash_copy = hash_key;
 
 # define take_back()                                                            \
     memcpy(piece_bitboards, piece_bitboards_copy, sizeof(piece_bitboards));     \
     memcpy(piece_occupancy, piece_occupancy_copy, sizeof(piece_occupancy));     \
     turn = turn_copy;                                                           \
     en_passant = en_passant_copy;                                               \
-    castling_rights = castling_rights_copy;
+    castling_rights = castling_rights_copy;                                     \
+    hash_key = hash_copy;
 
 enum {
     all,
@@ -841,6 +840,10 @@ int make_move (int move, int move_flag) {
         pop_bit(piece_bitboards[piece], source);
         set_bit(piece_bitboards[piece], target);
         
+        // hashing
+        hash_key ^= piece_keys[piece][source];
+        hash_key ^= piece_keys[piece][target];
+        
         if (capture) {
 
             int start = (turn == white) ? p : P;
@@ -849,23 +852,46 @@ int make_move (int move, int move_flag) {
             for (int bitboard_piece = start; bitboard_piece <= end; bitboard_piece++) {
                 if (bit_on_square(piece_bitboards[bitboard_piece], target)) {
                     pop_bit(piece_bitboards[bitboard_piece], target);
+                    hash_key ^= piece_keys[bitboard_piece][target];
                     break;
                 }
             }
         }
         
         if (promoted) {
-            pop_bit(piece_bitboards[(turn == white) ? P : p], target);
+            if (turn == white) {
+                pop_bit(piece_bitboards[P], target);
+                hash_key ^= piece_keys[P][target];
+            } else {
+                pop_bit(piece_bitboards[p], target);
+                hash_key ^= piece_keys[p][target];
+            }
             set_bit(piece_bitboards[promoted], target);
+            hash_key ^= piece_keys[promoted][target];
         }
         
-        if (enpassant)
-            (turn == white) ? pop_bit(piece_bitboards[p], target + 8) : pop_bit(piece_bitboards[P], target - 8);
+        if (enpassant) {
+            if (turn == white) {
+                pop_bit(piece_bitboards[p], target + 8);
+                hash_key ^= piece_keys[p][target + 8];
+            } else {
+                pop_bit(piece_bitboards[P], target - 8);
+                hash_key ^= piece_keys[P][target - 8];
+            }
+        }
+        
+        if (en_passant != -1) hash_key ^= enpassant_keys[en_passant];
         
         en_passant = -1;
         
         if (doublepush) {
-            (turn == white) ? (en_passant = target + 8) : (en_passant = target - 8);
+            if (turn == white) {
+                en_passant = target + 8;
+                hash_key ^= enpassant_keys[target + 8];
+            } else {
+                en_passant = target - 8;
+                hash_key ^= enpassant_keys[target - 8];
+            }
         }
         
         if (castling) {
@@ -873,25 +899,37 @@ int make_move (int move, int move_flag) {
                 case g1:
                     pop_bit(piece_bitboards[R], h1);
                     set_bit(piece_bitboards[R], f1);
+                    hash_key ^= piece_keys[R][h1];
+                    hash_key ^= piece_keys[R][f1];
                     break;
                 case c1:
                     pop_bit(piece_bitboards[R], a1);
                     set_bit(piece_bitboards[R], d1);
+                    hash_key ^= piece_keys[R][a1];
+                    hash_key ^= piece_keys[R][d1];
                     break;
                 case g8:
                     pop_bit(piece_bitboards[r], h8);
                     set_bit(piece_bitboards[r], f8);
+                    hash_key ^= piece_keys[r][h8];
+                    hash_key ^= piece_keys[r][f8];
                     break;
                 case c8:
                     pop_bit(piece_bitboards[r], a8);
                     set_bit(piece_bitboards[r], d8);
+                    hash_key ^= piece_keys[r][a8];
+                    hash_key ^= piece_keys[r][d8];
                     break;
                 default:
                     break;
             }
         }
         
+        hash_key ^= castling_keys[castling_rights];
+        
         castling_rights &= (castling_rights_squares[source] & castling_rights_squares[target]);
+        
+        hash_key ^= castling_keys[castling_rights];
         
         memset(piece_occupancy, 0ULL, sizeof(piece_occupancy));
                 
@@ -905,6 +943,8 @@ int make_move (int move, int move_flag) {
         
         turn ^= 1;
         
+        hash_key ^= turn_key;
+        
         if (is_square_attacked((turn == white) ? ls1b(piece_bitboards[k]) : ls1b(piece_bitboards[K]), turn)) {
             take_back();
             return 0;
@@ -915,15 +955,6 @@ int make_move (int move, int move_flag) {
         if (get_move_capture(move))
             make_move(move, all);
         return 0;
-}
-
-void init() {
-    
-    init_non_sliding_pieces();
-    init_sliding_pieces(bishop);
-    init_sliding_pieces(rook);
-//    init_magic();
-    
 }
 
 long long nodes;
@@ -1124,7 +1155,6 @@ static inline void sort_moves(moves *move_list) {
 }
 
 static inline int quiescence(int alpha, int beta) {
-    
     if((nodes & 2047) == 0) communicate();
     nodes++;
     int evaluation = evaluate();
@@ -1493,23 +1523,34 @@ void UCI_loop() {
     }
 }
 
+void init() {
+    
+    init_non_sliding_pieces();
+    init_sliding_pieces(bishop);
+    init_sliding_pieces(rook);
+    init_rand_keys();
+//    init_magic();
+    
+}
+
 int main(int argc, const char * argv[]) {
     
     init();
     // position fen rnbqkbnr/8/p7/Ppppppp1/1PPPPPPp/7P/8/RNBQKBNR w KQkq - 0 10
-//    parse_fen(tricky_position);
-//    styled_board();
-//
-//    // create move list instance
-//    moves move_list[1];
-//
-//    // generate moves
-//    generate_all_moves(move_list);
-//    search_position(8);
+    parse_fen(tricky_position);
+    styled_board();
+
+    // create move list instance
+    moves move_list[1];
+
+    // generate moves
+    generate_all_moves(move_list);
+    search_position(6);
+//    perft_test(5);
             
             // print move scores
     
-    UCI_loop();
+//    UCI_loop();
 //    parse_fen(tricky_position);
 //    styled_board();
 //    moves move_list[1];
