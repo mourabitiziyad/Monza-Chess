@@ -957,7 +957,7 @@ int make_move (int move, int move_flag) {
         return 0;
 }
 
-long long nodes;
+long nodes;
 
 static inline void perft_driver(int depth) {
     if (depth == 0) {
@@ -1002,7 +1002,7 @@ void perft_test(int depth) {
     }
     auto endTime = chrono::high_resolution_clock::now();
     printf("\n     Depth: %d\n", depth);
-    printf("     Nodes: %lld\n", nodes);
+    printf("     Nodes: %ld\n", nodes);
     cout << "     Time: " << chrono::duration_cast < chrono::milliseconds > (endTime - startTime).count() << "ms" << endl;
 }
 
@@ -1091,7 +1091,6 @@ static inline int evaluate() {
     } return -score;
 }
 // half move
-int ply;
 
 static inline int score_move(int move) {
     if (score_pv) {
@@ -1157,6 +1156,7 @@ static inline void sort_moves(moves *move_list) {
 static inline int quiescence(int alpha, int beta) {
     if((nodes & 2047) == 0) communicate();
     nodes++;
+    if (ply > max_ply - 1) return evaluate();
     int evaluation = evaluate();
     
     if (evaluation >= beta) {
@@ -1185,17 +1185,19 @@ static inline int quiescence(int alpha, int beta) {
         take_back();
         ply--;
         
+        if (stopped) return 0;
+        
         // fail-hard beta cutoff
         // the score can't be greater than alpha-beta bounds, soft-hard can.
-        if (score >= beta) {
-            // node (move) fails high
-            return beta;
-        }
-        
         // better move
         if (score > alpha) {
             // pv node (move)
             alpha = score;
+            
+            if (score >= beta) {
+                // node (move) fails high
+                return beta;
+            }
         }
     }
     return alpha;
@@ -1215,9 +1217,13 @@ const int full_depth_moves = 4;
 const int reduction_limit = 3;
 
 int negamax(int alpha, int beta, int depth) {
+    int score;
+    int flag = hashfALPHA;
+//    int pv_node = ((beta - alpha) > 1);
+//    if (!pv_node && ply && (score = probe_hash(alpha, beta, depth)) != no_hash_entry) return score;
+    if (ply && (score = probe_hash(alpha, beta, depth)) != no_hash_entry) return score;
     if((nodes & 2047) == 0) communicate();
     pv_length[ply] = ply;
-    int score = 0;
     if (depth == 0)
         return quiescence(alpha, beta);
     if (ply > max_ply - 1) {
@@ -1229,25 +1235,27 @@ int negamax(int alpha, int beta, int depth) {
     int legal_moves_count = 0;
     if (depth >= 3 && is_king_in_check == 0 && ply) {
         copy();
+        ply++;
+        if (en_passant != 1) hash_key ^= enpassant_keys[en_passant];
         turn ^= 1;
+        hash_key ^= turn_key;
         en_passant = -1;
-        int score = -negamax(-beta, -beta + 1, depth - 1 - 2);
+        score = -negamax(-beta, -beta + 1, depth - 1 - 2);
         take_back();
+        ply--;
         if (stopped) return 0;
-        if (score >= beta) {
-            return beta;
-        }
+        if (score >= beta) return beta;
     }
     moves move_list[1];
     generate_all_moves(move_list);
     if (is_following_pv) {
         enable_pv_scoring(move_list);
     }
-    
+
     sort_moves(move_list);
-    
+
     int moves_searched = 0;
-    
+
     for (int count = 0; count < move_list->count; count++) {
         copy();
         ply++;
@@ -1255,64 +1263,67 @@ int negamax(int alpha, int beta, int depth) {
             ply--;
             continue;
         }
-        
+
         legal_moves_count++;
-        
+
         if (!moves_searched)
             score = -negamax(-beta, -alpha, depth - 1);
         else {
             if (moves_searched >= full_depth_moves && depth >= reduction_limit && !is_king_in_check && !get_move_capture(move_list->moves[count]) && !get_move_promoted(move_list->moves[count]))
                 score = -negamax(-alpha - 1, -alpha, depth - 2);
             else score = alpha + 1;
-            
+
             if (score > alpha) {
                 score = -negamax(-alpha - 1, -alpha, depth-1);
                 if((score > alpha) && (score < beta))
                     score = -negamax(-beta, -alpha, depth-1);
             }
         }
-        
+
         take_back();
-        moves_searched++;
         ply--;
-        
-        // fail-hard beta cutoff
-        // the score can't be greater than alpha-beta bounds, soft-hard can.
-        if (score >= beta) {
-            // node (move) fails high
-            if (!get_move_capture(move_list->moves[count])) {
-                killer[1][ply] = killer[0][ply];
-                killer[0][ply] = move_list->moves[count];
-            }
-            return beta;
-        }
-        
+
+        if(stopped) return 0;
+        moves_searched++;
+
+
         // better move
         if (score > alpha) {
+            flag = hashfEXACT;
             if (!get_move_capture(move_list->moves[count])) {
                 history_moves[get_move_piece(move_list->moves[count])][get_move_target(move_list->moves[count])] += depth;
             }
-            
+
             // pv node (move)
 
             alpha = score;
-            
+
             pv_table[ply][ply] = move_list->moves[count];
             for (int next_ply = ply + 1; next_ply < pv_length[ply + 1]; next_ply++) {
               pv_table[ply][next_ply] = pv_table[ply + 1][next_ply];
             }
             pv_length[ply] = pv_length[ply + 1];
+
+            // fail-hard beta cutoff
+            // the score can't be greater than alpha-beta bounds, soft-hard can.
+            if (score >= beta) {
+                record_hash(depth, beta, hashfBETA);
+                // node (move) fails high
+                if (!get_move_capture(move_list->moves[count])) {
+                    killer[1][ply] = killer[0][ply];
+                    killer[0][ply] = move_list->moves[count];
+                }
+                return beta;
+            }
         }
     }
     if (!legal_moves_count) {
         if (is_king_in_check)
-            return -49000 + ply;
+            return -mate_val + ply;
         return 0;
     }
-    // if (old_alpha != alpha) {
-    //     best_move = best_so_far;
-    // }
-    // move fails low
+
+    record_hash(depth, alpha, flag);
     return alpha;
 }
 
@@ -1329,12 +1340,31 @@ void search_position(int depth) {
     memset(pv_table, 0, sizeof(pv_table));
     memset(pv_length, 0, sizeof(pv_length));
 
+    int alpha = -Infinity;
+    int beta = Infinity;
+
     for (int current_depth = 1; current_depth <= depth; current_depth++) {
         if (stopped) break;
         is_following_pv = 1;
-        score = negamax(-99999, 99999, current_depth);
-        
-        printf("info score cp %d depth %d nodes %lld pv ", score, current_depth, nodes);
+
+        score = negamax(alpha, beta, current_depth);
+
+//        if ((score <= alpha) || (score >= beta)) {
+//            alpha = -Infinity;
+//            beta = Infinity;
+//            current_depth--;
+//            continue;
+//        }
+//
+//        alpha = score - 50;
+//        beta = score + 50;
+
+        if (score > -mate_val && score < -mate_score)
+            printf("info score mate %d depth %d nodes %ld time %d pv ", -(score + mate_val) / 2 - 1, current_depth, nodes, get_time_ms() - starttime);
+        else if (score > mate_score && score < mate_val)
+            printf("info score mate %d depth %d nodes %ld time %d pv ", (mate_val - score) / 2 + 1, current_depth, nodes, get_time_ms() - starttime);
+        else
+            printf("info score cp %d depth %d nodes %ld time %d pv ", score, current_depth, nodes, get_time_ms() - starttime);
 
         for (int count = 0; count < pv_length[0]; count++) {
             display_UCI_move(pv_table[0][count]);
@@ -1510,6 +1540,7 @@ void UCI_loop() {
         }
         else if (!strncmp(input, "ucinewgame", 10)) {
             parse_position((char *)"position startpos");
+            clear_t_table();
         }
         else if (!strncmp(input, "go", 2)) {
             parse_go(input);
@@ -1524,6 +1555,7 @@ void UCI_loop() {
 }
 
 void init() {
+    clear_t_table();
     
     init_non_sliding_pieces();
     init_sliding_pieces(bishop);
@@ -1535,18 +1567,22 @@ void init() {
 
 int main(int argc, const char * argv[]) {
     
+//    static inline void record_hash(int depth, int value, int hash)
+//    static inline int probe_hash(int alpha, int beta, int depth)
+    
     init();
     // position fen rnbqkbnr/8/p7/Ppppppp1/1PPPPPPp/7P/8/RNBQKBNR w KQkq - 0 10
-    parse_fen(tricky_position);
+    //"4k3/Q7/8/4K3/8/8/8/8 w - - "
+    parse_fen(starting_position);
     styled_board();
-
-    // create move list instance
-    moves move_list[1];
-
-    // generate moves
-    generate_all_moves(move_list);
-    search_position(6);
-//    perft_test(5);
+//
+//    // create move list instance
+//    moves move_list[1];
+//
+//    // generate moves
+//    generate_all_moves(move_list);
+    search_position(8);
+//    perft_test(7);
             
             // print move scores
     

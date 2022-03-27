@@ -21,10 +21,14 @@
     # include <sys/time.h>
 #endif
 
+# define mate_score 48000
+# define mate_val 49000
+# define Infinity 50000
+
 int turn = -1;
 int castling_rights = 0;
 int en_passant = -1;
-
+int ply;
 
 int quit = 0;
 int movestogo = 30;
@@ -331,6 +335,52 @@ char find_promoted_piece_index(int piece) {
 //    [n] = 'n',
 //};
 
+# define t_size 0x40000
+
+# define hashfEXACT 0
+# define hashfALPHA 1
+# define hashfBETA 2
+
+typedef struct tagHASHE {
+    Bitboard key;
+    int depth;
+    int flag;
+    int value;
+//    moves best;
+} t_table;
+
+t_table transposition_table[t_size];
+
+# define clear_t_table() \
+    memset(transposition_table, 0, sizeof(transposition_table));
+# define no_hash_entry 100000
+
+static inline int probe_hash(int alpha, int beta, int depth) {
+    t_table *hash_entry = &transposition_table[hash_key % t_size];
+    if (hash_entry->key == hash_key) {
+        if (hash_entry->depth >= depth) {
+            int score = hash_entry->value;
+            if (score < -mate_score) score += ply;
+            if (score > mate_score) score -= ply;
+            if (hash_entry->flag == hashfEXACT) return score;
+            if ((hash_entry->flag == hashfALPHA) && (score <= alpha)) return alpha;
+            if ((hash_entry->flag == hashfBETA) && (score >= beta)) return beta;
+        }
+    }
+    return no_hash_entry;
+}
+
+static inline void record_hash(int depth, int value, int hash) {
+    t_table *hash_entry = &transposition_table[hash_key % t_size];
+    
+    if (value < -mate_score) value -= ply;
+    if (value > mate_score) value += ply;
+    
+    hash_entry->key = hash_key;
+    hash_entry->value = value;
+    hash_entry->depth = depth;
+    hash_entry->flag = hash;
+}
 
 const Bitboard notAFile  = 18374403900871474942ULL; // 0xfefefefefefefefe; // ~0x0101010101010101
 const Bitboard notABFile = 18229723555195321596ULL;
