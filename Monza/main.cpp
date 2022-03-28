@@ -437,6 +437,9 @@ void parse_fen(char * fen_string) {
     turn = -1;
     en_passant = -1;
     
+    repetition_index = 0;
+    memset(repetitions, 0, sizeof(repetitions));
+    
     for (int square = 0; square < 64 && *fen_string && *fen_string!=' ';) {
         if (isalpha(*fen_string)) {
             int piece_index = find_piece_index(*fen_string++);
@@ -1176,14 +1179,20 @@ static inline int quiescence(int alpha, int beta) {
     for (int count = 0; count < move_list->count; count++) {
         copy();
         ply++;
+        
+        repetition_index++;
+        repetitions[repetition_index] = hash_key;
+
         if (!make_move(move_list->moves[count], captures)) {
             ply--;
+            repetition_index--;
             continue;
         }
     
         int score = -quiescence(-beta, -alpha);
         take_back();
         ply--;
+        repetition_index--;
         
         if (stopped) return 0;
         
@@ -1219,6 +1228,7 @@ const int reduction_limit = 3;
 int negamax(int alpha, int beta, int depth) {
     int score;
     int flag = hashfALPHA;
+    if (ply && is_repetition()) return 0;
 //    int pv_node = ((beta - alpha) > 1);
 //    if (!pv_node && ply && (score = probe_hash(alpha, beta, depth)) != no_hash_entry) return score;
     if (ply && (score = probe_hash(alpha, beta, depth)) != no_hash_entry) return score;
@@ -1236,6 +1246,9 @@ int negamax(int alpha, int beta, int depth) {
     if (depth >= 3 && is_king_in_check == 0 && ply) {
         copy();
         ply++;
+        repetition_index++;
+        repetitions[repetition_index] = hash_key;
+
         if (en_passant != 1) hash_key ^= enpassant_keys[en_passant];
         turn ^= 1;
         hash_key ^= turn_key;
@@ -1243,6 +1256,7 @@ int negamax(int alpha, int beta, int depth) {
         score = -negamax(-beta, -beta + 1, depth - 1 - 2);
         take_back();
         ply--;
+        repetition_index--;
         if (stopped) return 0;
         if (score >= beta) return beta;
     }
@@ -1259,8 +1273,12 @@ int negamax(int alpha, int beta, int depth) {
     for (int count = 0; count < move_list->count; count++) {
         copy();
         ply++;
+        repetition_index++;
+        repetitions[repetition_index] = hash_key;
+
         if (!make_move(move_list->moves[count], all)) {
             ply--;
+            repetition_index--;
             continue;
         }
 
@@ -1282,6 +1300,7 @@ int negamax(int alpha, int beta, int depth) {
 
         take_back();
         ply--;
+        repetition_index--;
 
         if(stopped) return 0;
         moves_searched++;
@@ -1450,6 +1469,9 @@ void parse_position(char *command) // taken from BBC.c (Code Monkey King)
             if (move == 0)
                 // break out of the loop
                 break;
+            
+            repetition_index++;
+            repetitions[repetition_index] = hash_key;
             
             // make move on the chess board
             make_move(move, all);

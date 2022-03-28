@@ -186,6 +186,8 @@ Bitboard enpassant_keys[64];
 Bitboard castling_keys[16];
 Bitboard turn_key;
 Bitboard hash_key;
+Bitboard repetitions[500];
+int repetition_index = 0;
 
 enum {
     a8, b8, c8, d8, e8, f8, g8, h8,
@@ -380,6 +382,11 @@ static inline void record_hash(int depth, int value, int hash) {
     hash_entry->value = value;
     hash_entry->depth = depth;
     hash_entry->flag = hash;
+}
+
+static inline int is_repetition() {
+    for (int i = 0; i < repetition_index; i++) if (repetitions[i] == hash_key) return 1;
+    return 0;
 }
 
 const Bitboard notAFile  = 18374403900871474942ULL; // 0xfefefefefefefefe; // ~0x0101010101010101
