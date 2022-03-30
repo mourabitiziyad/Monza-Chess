@@ -1054,34 +1054,58 @@ static inline int evaluate() {
             switch (bb_piece) {
                 case P:
                     score += pawn_scores[square];
+                    if (count_bits(piece_bitboards[P] & file_masks[square]) > 1) score += count_bits(piece_bitboards[P] & file_masks[square]) * double_pawn_penalty;
+                    if (!(piece_bitboards[P] & isolated_pawn_masks[square])) score += isolated_pawn_penalty;
+                    if (!(piece_bitboards[P] & white_passed_pawn_masks[square])) score += passed_pawn_bonus[get_rank[square]];
                     break;
                 case N:
                     score += knight_scores[square];
                     break;
                 case B:
                     score += bishop_scores[square];
+                    score += count_bits(get_bishop_attacks(square, piece_occupancy[both]));
                     break;
                 case R:
                     score += rook_scores[square];
+                    if (!(piece_bitboards[P] & file_masks[square])) score +=     semi_open_file_score;
+                    if (!((piece_bitboards[P] | piece_bitboards[p]) & file_masks[square])) score += open_file_score;
                     break;
                 case K:
                     score += king_scores[square];
+                    if (!(piece_bitboards[P] & file_masks[square])) score -= semi_open_file_score;
+                    if (!((piece_bitboards[P] | piece_bitboards[p]) & file_masks[square])) score -= open_file_score;
+                    score += count_bits(king_attack_moves[square] & piece_occupancy[white]) * king_safety_bonus;
+                    break;
+                case Q:
+                    score += count_bits(get_queen_attacks(square, piece_occupancy[both]));
                     break;
                 
                 case p:
                     score -= pawn_scores[mirror_scores[square]];
+                    if (count_bits(piece_bitboards[p] & file_masks[square]) > 1) score -= count_bits(piece_bitboards[P] & file_masks[square]) * double_pawn_penalty;
+                    if (!(piece_bitboards[p] & isolated_pawn_masks[square])) score -= isolated_pawn_penalty;
+                    if (!(piece_bitboards[p] & black_passed_pawn_masks[square])) score -= passed_pawn_bonus[get_rank[mirror_scores[square]]];
                     break;
                 case n:
                     score -= knight_scores[mirror_scores[square]];
                     break;
                 case b:
                     score -= bishop_scores[mirror_scores[square]];
+                    score -= count_bits(get_bishop_attacks(square, piece_occupancy[both]));
                     break;
                 case r:
                     score -= rook_scores[mirror_scores[square]];
+                    if (!(piece_bitboards[p] & file_masks[square])) score -= semi_open_file_score;
+                    if (!((piece_bitboards[P] | piece_bitboards[p]) & file_masks[square])) score -= open_file_score;
                     break;
                 case k:
                     score -= king_scores[mirror_scores[square]];
+                    if (!(piece_bitboards[P] & file_masks[square])) score += semi_open_file_score;
+                    if (!((piece_bitboards[P] | piece_bitboards[p]) & file_masks[square])) score += open_file_score;
+                    score -= count_bits(king_attack_moves[square] & piece_occupancy[black]) * king_safety_bonus;
+                    break;
+                case q:
+                    score -= count_bits(get_queen_attacks(square, piece_occupancy[both]));
                     break;
                 default:
                     break;
@@ -1377,19 +1401,21 @@ void search_position(int depth) {
 //
 //        alpha = score - 50;
 //        beta = score + 50;
+        
+        if (pv_length[0]) {
+            if (score > -mate_val && score < -mate_score)
+                printf("info score mate %d depth %d nodes %ld time %d pv ", -(score + mate_val) / 2 - 1, current_depth, nodes, get_time_ms() - starttime);
+            else if (score > mate_score && score < mate_val)
+                printf("info score mate %d depth %d nodes %ld time %d pv ", (mate_val - score) / 2 + 1, current_depth, nodes, get_time_ms() - starttime);
+            else
+                printf("info score cp %d depth %d nodes %ld time %d pv ", score, current_depth, nodes, get_time_ms() - starttime);
 
-        if (score > -mate_val && score < -mate_score)
-            printf("info score mate %d depth %d nodes %ld time %d pv ", -(score + mate_val) / 2 - 1, current_depth, nodes, get_time_ms() - starttime);
-        else if (score > mate_score && score < mate_val)
-            printf("info score mate %d depth %d nodes %ld time %d pv ", (mate_val - score) / 2 + 1, current_depth, nodes, get_time_ms() - starttime);
-        else
-            printf("info score cp %d depth %d nodes %ld time %d pv ", score, current_depth, nodes, get_time_ms() - starttime);
-
-        for (int count = 0; count < pv_length[0]; count++) {
-            display_UCI_move(pv_table[0][count]);
-            printf(" ");
+            for (int count = 0; count < pv_length[0]; count++) {
+                display_UCI_move(pv_table[0][count]);
+                printf(" ");
+            }
+            printf("\n");
         }
-        printf("\n");
     }
 
     printf("bestmove ");
@@ -1499,6 +1525,7 @@ void parse_position(char *command) // taken from BBC.c (Code Monkey King)
 //}
 
 void parse_go(char *command) {
+    reset_time();
     int depth = -1;
     char *argument = NULL;
     if ((argument = strstr(command,"infinite"))) {}
@@ -1525,12 +1552,12 @@ void parse_go(char *command) {
     if(time_ != -1) {
         timeset = 1;
         time_ /= movestogo;
-        time_ -= 50;
+        if (time_ > 1500) time_ -= 50;
         stoptime = starttime + time_ + inc;
     }
     
     if (depth == -1) depth = 64;
-    printf("time:%d start:%d stop:%d depth:%d timeset:%d\n",
+    printf("time: %d start: %u stop: %u depth: %d timeset: %d\n",
     time_, starttime, stoptime, depth, timeset);
 
     // search position
@@ -1576,13 +1603,53 @@ void UCI_loop() {
     }
 }
 
-void init() {
-    clear_t_table();
+void init_eval() {
     
+    for (int rank = 0; rank < 8; rank++) {
+        for (int file = 0; file < 8; file++) {
+            int square = rank * 8 + file;
+            file_masks[square] |= set_mask(file, -1);
+            rank_masks[square] |= set_mask(-1, rank);
+            isolated_pawn_masks[square] |= set_mask(file - 1, -1);
+            isolated_pawn_masks[square] |= set_mask(file + 1, -1);
+        }
+    }
+    
+    for (int rank = 0; rank < 8; rank++) {
+        for (int file = 0; file < 8; file++) {
+            int square = rank * 8 + file;
+            
+            black_passed_pawn_masks[square] |= set_mask(file - 1, -1);
+            black_passed_pawn_masks[square] |= set_mask(file, -1);
+            black_passed_pawn_masks[square] |= set_mask(file + 1, -1);
+            for (int i = 0; i < rank + 1; i++)
+                black_passed_pawn_masks[square] &= ~rank_masks[i * 8 + file];
+        }
+    }
+    
+    for (int rank = 0; rank < 8; rank++) {
+        for (int file = 0; file < 8; file++) {
+            int square = rank * 8 + file;
+            
+            white_passed_pawn_masks[square] |= set_mask(file - 1, -1);
+            white_passed_pawn_masks[square] |= set_mask(file, -1);
+            white_passed_pawn_masks[square] |= set_mask(file + 1, -1);
+            for (int i = 0; i < (8 - rank); i++)
+                white_passed_pawn_masks[square] &= ~rank_masks[(7 - i) * 8 + file];
+          
+//            printf("%s\n", squares[square]);
+//            board(white_passed_pawn_masks[square]);
+        }
+    }
+}
+
+void init() {
     init_non_sliding_pieces();
     init_sliding_pieces(bishop);
     init_sliding_pieces(rook);
     init_rand_keys();
+    clear_t_table();
+    init_eval();
 //    init_magic();
     
 }
@@ -1595,20 +1662,21 @@ int main(int argc, const char * argv[]) {
     init();
     // position fen rnbqkbnr/8/p7/Ppppppp1/1PPPPPPp/7P/8/RNBQKBNR w KQkq - 0 10
     //"4k3/Q7/8/4K3/8/8/8/8 w - - "
-    parse_fen(starting_position);
-    styled_board();
+//    parse_fen("6k1/ppppprbp/8/8/8/8/PPPPPRBP/6K1 w - -");
+//    parse_fen(starting_position);
+//    styled_board();
 //
 //    // create move list instance
 //    moves move_list[1];
 //
 //    // generate moves
 //    generate_all_moves(move_list);
-    search_position(8);
+//    search_position(10);
 //    perft_test(7);
             
             // print move scores
     
-//    UCI_loop();
+    UCI_loop();
 //    parse_fen(tricky_position);
 //    styled_board();
 //    moves move_list[1];

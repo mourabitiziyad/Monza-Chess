@@ -12,6 +12,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <iostream>
+using namespace std;
 
 
 #endif /* constants_hpp */
@@ -39,6 +41,18 @@ int starttime = 0;
 int stoptime = 0;
 int timeset = 0;
 int stopped = 0;
+
+void reset_time() {
+    quit = 0;
+    movestogo = 30;
+    movetime = -1;
+    time_ = -1;
+    inc = 0;
+    starttime = 0;
+    stoptime = 0;
+    timeset = 0;
+    stopped = 0;
+}
 
 int get_time_ms()
 {
@@ -187,6 +201,13 @@ Bitboard castling_keys[16];
 Bitboard turn_key;
 Bitboard hash_key;
 Bitboard repetitions[500];
+
+Bitboard file_masks[64];
+Bitboard rank_masks[64];
+Bitboard isolated_pawn_masks[64];
+Bitboard white_passed_pawn_masks[64];
+Bitboard black_passed_pawn_masks[64];
+
 int repetition_index = 0;
 
 enum {
@@ -236,6 +257,24 @@ enum {
 //     ['q'] = q,
 //     ['k'] = k
 // };
+
+const int get_rank[64] = {
+    7, 7, 7, 7, 7, 7, 7, 7,
+    6, 6, 6, 6, 6, 6, 6, 6,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    4, 4, 4, 4, 4, 4, 4, 4,
+    3, 3, 3, 3, 3, 3, 3, 3,
+    2, 2, 2, 2, 2, 2, 2, 2,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    0, 0, 0, 0, 0, 0, 0, 0
+};
+
+const int double_pawn_penalty = -10;
+const int isolated_pawn_penalty = -10;
+const int passed_pawn_bonus[8] = { 0, 10, 30, 50, 75, 100, 150, 200 };
+const int semi_open_file_score = 10;
+const int open_file_score = 15;
+const int king_safety_bonus = 5;
 
 static int mvv_lva[12][12] = {
     105, 205, 305, 405, 505, 605, 105, 205, 305, 405, 505, 605,
@@ -337,7 +376,7 @@ char find_promoted_piece_index(int piece) {
 //    [n] = 'n',
 //};
 
-# define t_size 0x40000
+# define t_size 800000
 
 # define hashfEXACT 0
 # define hashfALPHA 1
@@ -759,4 +798,22 @@ Bitboard generate_hash() {
     if (turn == black) key ^= turn_key;
     
     return key;
+}
+
+Bitboard set_mask(int file, int rank) {
+    Bitboard mask = 0ULL;
+    for (int r = 0; r < 8; r++) {
+        for (int f = 0; f < 8; f++) {
+            int square = r * 8 + f;
+            if (file != -1) {
+                if (f == file)
+                    mask |= set_bit(mask, square);
+            }
+            else if (rank != -1) {
+                if (r == rank)
+                    mask |= set_bit(mask, square);
+            }
+        }
+    }
+    return mask;
 }
