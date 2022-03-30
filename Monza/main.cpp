@@ -1565,6 +1565,10 @@ void parse_go(char *command) {
 }
 
 void UCI_loop() {
+    
+    int max_hash = 128;
+    int mb = 64;
+    
     setbuf(stdin, NULL);
     setbuf(stdout, NULL);
     
@@ -1572,6 +1576,7 @@ void UCI_loop() {
     
     printf("id name Monza\n");
     printf("id author Ziyad Mourabiti\n");
+    printf("option name Hash type spin default 64 min 6 max %d\n", max_hash);
     printf("uciok\n"); // chess engine speaks UCI
     
     while (1) {
@@ -1599,6 +1604,13 @@ void UCI_loop() {
             printf("id name Monza\n");
             printf("id author Ziyad Mourabiti\n");
             printf("uciok\n"); // chess engine speaks UCI
+        }
+        else if (!strncmp(input, "setoption name Hash value ", 26)) {
+            sscanf(input, "%*s %*s %*s %*s %d", &mb);
+            if (mb < 4) mb = 4;
+            if (mb > max_hash) mb = max_hash;
+            printf("Set table size to %dmb\n", mb);
+            init_t_table(mb);
         }
     }
 }
@@ -1648,53 +1660,22 @@ void init() {
     init_sliding_pieces(bishop);
     init_sliding_pieces(rook);
     init_rand_keys();
-    clear_t_table();
     init_eval();
+    init_t_table(64);
 //    init_magic();
     
 }
 
 int main(int argc, const char * argv[]) {
     
-//    static inline void record_hash(int depth, int value, int hash)
-//    static inline int probe_hash(int alpha, int beta, int depth)
-    
     init();
-    // position fen rnbqkbnr/8/p7/Ppppppp1/1PPPPPPp/7P/8/RNBQKBNR w KQkq - 0 10
-    //"4k3/Q7/8/4K3/8/8/8/8 w - - "
-//    parse_fen("6k1/ppppprbp/8/8/8/8/PPPPPRBP/6K1 w - -");
-//    parse_fen(starting_position);
-//    styled_board();
-//
-//    // create move list instance
-//    moves move_list[1];
-//
-//    // generate moves
-//    generate_all_moves(move_list);
-//    search_position(10);
-//    perft_test(7);
-            
-            // print move scores
     
-    UCI_loop();
 //    parse_fen(tricky_position);
 //    styled_board();
-//    moves move_list[1];
-//    generate_all_moves(move_list);
-//    display_move_list(move_list);
-//    killer[0][ply] = move_list->moves[3];
-//    killer[1][ply] = move_list->moves[2];
-//    display_move_score(move_list);
-//    sort_moves(move_list);
-//    display_move_score(move_list);
+//    search_position(10);
 
-//    int move = parse_move((char *)"g2g1q");
-//    if (move) {
-//        make_move(move, all);
-//        styled_board();
-//    } else {
-//        printf("illegal\n");
-//    }
+    
+    UCI_loop();
     
     return 0;
 }
