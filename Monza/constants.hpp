@@ -17,7 +17,7 @@ using namespace std;
 
 
 #endif /* constants_hpp */
-#ifdef WIN64
+#if defined(WIN64) || defined(WIN32)
     #include <windows.h>
 #else
     # include <sys/time.h>
@@ -56,7 +56,7 @@ void reset_time() {
 
 int get_time_ms()
 {
-    #ifdef WIN64
+    #if defined(WIN64) || defined(WIN32)
         return GetTickCount();
     #else
         struct timeval time_value;
@@ -376,8 +376,8 @@ char find_promoted_piece_index(int piece) {
 //    [n] = 'n',
 //};
 
-//# define t_size 800000
-int t_size = 0;
+# define t_size 800000
+//int t_size = 0;
 
 # define hashfEXACT 0
 # define hashfALPHA 1
@@ -388,39 +388,41 @@ typedef struct tagHASHE {
     int depth;
     int flag;
     int value;
-//    moves best;
 } t_table;
 
-t_table *transposition_table = NULL;
+t_table transposition_table[t_size];
+//t_table *transposition_table = NULL;
 
-void clear_t_table() {
-    t_table *hash_entry;
-    for (hash_entry = transposition_table; hash_entry < transposition_table + t_size; hash_entry++) {
-        hash_entry->value = 0;
-        hash_entry->depth = 0;
-        hash_entry->flag = 0;
-        hash_entry->key = 0;
-    }
-}
+# define clear_t_table() \
+    memset(transposition_table, 0, sizeof(transposition_table));
+//void clear_t_table() {
+//    t_table *hash_entry;
+//    for (hash_entry = transposition_table; hash_entry < transposition_table + t_size; hash_entry++) {
+//        hash_entry->value = 0;
+//        hash_entry->depth = 0;
+//        hash_entry->flag = 0;
+//        hash_entry->key = 0;
+//    }
+//}
 
 # define no_hash_entry 100000
 
-void init_t_table(int mb) {
-    int hash_size = 0x100000 * mb;
-    t_size = hash_size / sizeof(t_table);
-    if (transposition_table != NULL) {
-        printf("Clearing Hash Memory...\n");
-        free(transposition_table);
-    }
-    transposition_table = (t_table *) malloc(t_size * sizeof(t_table));
-    if (transposition_table == NULL) {
-        printf("Couldn't Allocate Memory, trying %dmb...\n", mb/2);
-        init_t_table(mb/2);
-    } else {
-        clear_t_table();
-        printf("Hash Table is initialised with %d entries\n", t_size);
-    }
-}
+//void init_t_table(int mb) {
+//    int hash_size = 0x100000 * mb;
+//    t_size = hash_size / sizeof(t_table);
+//    if (transposition_table != NULL) {
+//        printf("Clearing Hash Memory...\n");
+//        free(transposition_table);
+//    }
+//    transposition_table = (t_table *) malloc(t_size * sizeof(t_table));
+//    if (transposition_table == NULL) {
+//        printf("Couldn't Allocate Memory, trying %dmb...\n", mb/2);
+//        init_t_table(mb/2);
+//    } else {
+//        clear_t_table();
+//        printf("Hash Table is initialised with %d entries\n", t_size);
+//    }
+//}
 
 static inline int probe_hash(int alpha, int beta, int depth) {
     t_table *hash_entry = &transposition_table[hash_key % t_size];
