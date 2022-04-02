@@ -15,6 +15,12 @@
 #include <iostream>
 using namespace std;
 
+#if defined(WIN64) || defined(WIN32)
+    char * unicode_pieces[12] = {(char *)"P",(char *)"N",(char *)"B",(char *)"R",(char *)"Q",(char *)"K",(char *)"p",(char *)"n",(char *)"b",(char *)"r",(char *)"q",(char *)"k"};
+#else
+    char * unicode_pieces[12] = {(char *)"♟︎", (char *)"♞", (char *)"♝", (char *)"♜", (char *)"♛", (char *)"♚", (char *)"♙", (char *)"♘", (char *)"♗", (char *)"♖", (char *)"♕", (char *)"♔"};
+#endif
+
 //      +---+---+---+---+---+---+---+---+---+---+---+---+---+
 //      +---+---+---+---+ Printing the Board ---+---+---+---+
 //      +---+---+---+---+---+---+---+---+---+---+---+---+---+
@@ -32,6 +38,7 @@ Bitboard get_occupancy_set(int idx, int bits, Bitboard attacks) {
     return occupancy;
 }
 
+
 char ascii_pieces[] = "PNBRQKpnbrqk";
 
 //                        8  ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜
@@ -44,7 +51,6 @@ char ascii_pieces[] = "PNBRQKpnbrqk";
 //                        1  ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
 //                           a b c d e f g h
 
-char * unicode_pieces[12] = {(char *)"♟︎", (char *)"♞", (char *)"♝", (char *)"♜", (char *)"♛", (char *)"♚", (char *)"♙", (char *)"♘", (char *)"♗", (char *)"♖", (char *)"♕", (char *)"♔"};
 //char unicode_pieces[] = "♟︎♞♝♜♛♚♙♘♗♖♕♔";
 
 void board(Bitboard bitboard) {
