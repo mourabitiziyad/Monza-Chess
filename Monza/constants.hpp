@@ -376,7 +376,8 @@ char find_promoted_piece_index(int piece) {
 //    [n] = 'n',
 //};
 
-# define t_size 800000
+# define t_size 5600000  // times the size of a tt struct equals about 112 mb
+//# define t_size 800000 // about 16 mb
 //int t_size = 0;
 
 # define hashfEXACT 0
