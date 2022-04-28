@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		483AB27B2789764D00EE0E40 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 483AB27A2789764D00EE0E40 /* main.cpp */; };
+		48099499281A1CDF00A61EEA /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 483AB27A2789764D00EE0E40 /* main.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,9 +23,37 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		4809948D281A0B0B00A61EEA /* time.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = time.cpp; sourceTree = "<group>"; };
+		4809948E281A0B0B00A61EEA /* time.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = time.hpp; sourceTree = "<group>"; };
+		48099490281A0D1200A61EEA /* board.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = board.cpp; sourceTree = "<group>"; };
+		48099491281A0D1200A61EEA /* board.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = board.hpp; sourceTree = "<group>"; };
+		48099494281A0DFD00A61EEA /* macros.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = macros.hpp; sourceTree = "<group>"; };
+		48099496281A0EDF00A61EEA /* enums.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = enums.h; sourceTree = "<group>"; };
+		48099497281A101200A61EEA /* globals.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = globals.h; sourceTree = "<group>"; };
+		4809949D281A203200A61EEA /* attacks.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = attacks.cpp; sourceTree = "<group>"; };
+		4809949E281A203200A61EEA /* attacks.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = attacks.hpp; sourceTree = "<group>"; };
+		480994A0281A21A900A61EEA /* defs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = defs.h; sourceTree = "<group>"; };
+		480994A1281A232500A61EEA /* init.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = init.cpp; sourceTree = "<group>"; };
+		480994A2281A232500A61EEA /* init.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = init.hpp; sourceTree = "<group>"; };
+		480994A4281A246800A61EEA /* magics.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = magics.cpp; sourceTree = "<group>"; };
+		480994A5281A246800A61EEA /* magics.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = magics.hpp; sourceTree = "<group>"; };
+		480994A7281A263100A61EEA /* zobrist.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = zobrist.cpp; sourceTree = "<group>"; };
+		480994A8281A263100A61EEA /* zobrist.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = zobrist.hpp; sourceTree = "<group>"; };
+		480994AA281A270800A61EEA /* search.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = search.cpp; sourceTree = "<group>"; };
+		480994AB281A270800A61EEA /* search.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = search.hpp; sourceTree = "<group>"; };
+		480994AD281A290A00A61EEA /* eval.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = eval.cpp; sourceTree = "<group>"; };
+		480994AE281A290A00A61EEA /* eval.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = eval.hpp; sourceTree = "<group>"; };
+		480994B0281A2BDD00A61EEA /* uci.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = uci.cpp; sourceTree = "<group>"; };
+		480994B1281A2BDD00A61EEA /* uci.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = uci.hpp; sourceTree = "<group>"; };
 		483AB2772789764D00EE0E40 /* Monza */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Monza; sourceTree = BUILT_PRODUCTS_DIR; };
 		483AB27A2789764D00EE0E40 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		483AB28227898D4E00EE0E40 /* constants.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = constants.hpp; sourceTree = "<group>"; };
+		4845F8D22819FD7B00D42824 /* types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
+		4845F8D32819FF2C00D42824 /* random.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = random.cpp; sourceTree = "<group>"; };
+		4845F8D6281A016D00D42824 /* random.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = random.h; sourceTree = "<group>"; };
+		489D4643281A2F9E00FCE20F /* move.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = move.cpp; sourceTree = "<group>"; };
+		489D4644281A2F9E00FCE20F /* move.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = move.hpp; sourceTree = "<group>"; };
+		48A14B6527DABAEE00749493 /* Monza.profdata */ = {isa = PBXFileReference; lastKnownFileType = file; path = Monza.profdata; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,6 +72,7 @@
 			children = (
 				483AB2792789764D00EE0E40 /* Monza */,
 				483AB2782789764D00EE0E40 /* Products */,
+				48A14B6427DABAEE00749493 /* OptimizationProfiles */,
 			);
 			sourceTree = "<group>";
 		};
@@ -59,9 +88,44 @@
 			isa = PBXGroup;
 			children = (
 				483AB27A2789764D00EE0E40 /* main.cpp */,
+				489D4643281A2F9E00FCE20F /* move.cpp */,
+				489D4644281A2F9E00FCE20F /* move.hpp */,
+				480994B0281A2BDD00A61EEA /* uci.cpp */,
+				480994B1281A2BDD00A61EEA /* uci.hpp */,
+				480994AA281A270800A61EEA /* search.cpp */,
+				480994AD281A290A00A61EEA /* eval.cpp */,
+				480994AE281A290A00A61EEA /* eval.hpp */,
+				480994AB281A270800A61EEA /* search.hpp */,
+				480994A1281A232500A61EEA /* init.cpp */,
+				480994A4281A246800A61EEA /* magics.cpp */,
+				480994A5281A246800A61EEA /* magics.hpp */,
+				480994A2281A232500A61EEA /* init.hpp */,
+				480994A0281A21A900A61EEA /* defs.h */,
+				4809949D281A203200A61EEA /* attacks.cpp */,
+				4809949E281A203200A61EEA /* attacks.hpp */,
+				48099490281A0D1200A61EEA /* board.cpp */,
+				48099497281A101200A61EEA /* globals.h */,
+				48099496281A0EDF00A61EEA /* enums.h */,
+				48099494281A0DFD00A61EEA /* macros.hpp */,
+				48099491281A0D1200A61EEA /* board.hpp */,
+				4845F8D32819FF2C00D42824 /* random.cpp */,
+				4845F8D6281A016D00D42824 /* random.h */,
+				4845F8D22819FD7B00D42824 /* types.h */,
 				483AB28227898D4E00EE0E40 /* constants.hpp */,
+				480994A7281A263100A61EEA /* zobrist.cpp */,
+				480994A8281A263100A61EEA /* zobrist.hpp */,
+				4809948D281A0B0B00A61EEA /* time.cpp */,
+				4809948E281A0B0B00A61EEA /* time.hpp */,
 			);
 			path = Monza;
+			sourceTree = "<group>";
+		};
+		48A14B6427DABAEE00749493 /* OptimizationProfiles */ = {
+			isa = PBXGroup;
+			children = (
+				48A14B6527DABAEE00749493 /* Monza.profdata */,
+			);
+			path = OptimizationProfiles;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -71,9 +135,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 483AB27E2789764D00EE0E40 /* Build configuration list for PBXNativeTarget "Monza" */;
 			buildPhases = (
-				483AB2732789764D00EE0E40 /* Sources */,
 				483AB2742789764D00EE0E40 /* Frameworks */,
 				483AB2752789764D00EE0E40 /* CopyFiles */,
+				48099498281A1CD600A61EEA /* Sources */,
 			);
 			buildRules = (
 			);
@@ -91,7 +155,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastUpgradeCheck = 1320;
+				LastUpgradeCheck = 1330;
 				TargetAttributes = {
 					483AB2762789764D00EE0E40 = {
 						CreatedOnToolsVersion = 13.2.1;
@@ -117,11 +181,11 @@
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
-		483AB2732789764D00EE0E40 /* Sources */ = {
+		48099498281A1CD600A61EEA /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				483AB27B2789764D00EE0E40 /* main.cpp in Sources */,
+				48099499281A1CDF00A61EEA /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -168,7 +232,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_OPTIMIZATION_LEVEL = fast;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
@@ -224,8 +288,10 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = fast;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -242,6 +308,8 @@
 		483AB27F2789764D00EE0E40 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_USE_OPTIMIZATION_PROFILE = YES;
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = PW3N7W879F;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -252,6 +320,8 @@
 		483AB2802789764D00EE0E40 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_USE_OPTIMIZATION_PROFILE = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = PW3N7W879F;
 				ENABLE_HARDENED_RUNTIME = YES;
