@@ -11,10 +11,12 @@ jobs:
       runs-on: ubuntu-latest
       steps:
       - uses: actions/checkout@v2
-      - name: install cppunit
-        run: sudo apt install -y libcppunit-dev
       - name: configure
         run: chmod +x configure 
             ./configure
       - name: make
         run: make
+      - uses: actions/upload-artifact@v2
+        with:
+          path: build/*.tar.gz
+          name: artifact_test.tar.gz
