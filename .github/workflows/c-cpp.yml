@@ -18,5 +18,5 @@ jobs:
         run: make
       - uses: actions/upload-artifact@v2
         with:
-          path: build/*.tar.gz
+          path: build/
           name: artifact_test.tar.gz
