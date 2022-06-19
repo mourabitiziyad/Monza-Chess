@@ -2,4 +2,3 @@ CXX=g++
 CXXFLAGS=-g
 NATIVE=on
 TUNE=generic
-CREATE_PACKAGE=on
