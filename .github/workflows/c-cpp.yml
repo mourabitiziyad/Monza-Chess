@@ -8,9 +8,7 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - name: Build c++ project
     - uses: nicledomaS/cmake_build_action@v1.4
