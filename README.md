@@ -42,7 +42,7 @@ Check out Monza on [Lichess](https://lichess.org/@/MonzaEngine)
 - WIP
 
 ## Resources / Inspiration
-### Sources that I looked at extensively (not necessarily adopted in my implementation)
+### Sources that I looked at extensively
 #### _In no particular order_
 
 - Maksim Korzh - BBC (Bitboard Chess Engine)
