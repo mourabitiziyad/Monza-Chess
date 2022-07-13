@@ -1,10 +1,8 @@
-# Monza - A Chess Engine Written in C++
+# Monza - A Chess Engine Written in C++ — Estimated Rating: 2000
 
 Monza is in early development and is a built for the purpose of it being a capstone project.
 
 "Monza" is a city that's just northeast of Italy and it is used as a reference to Monza Circuit; one of the highest speed Formula 1 tracks and is known as the temple of speed.
-
-Check out Monza on [Lichess](https://lichess.org/@/MonzaEngine)
 
 ## Currently working on:
 
@@ -32,14 +30,10 @@ Check out Monza on [Lichess](https://lichess.org/@/MonzaEngine)
     
 
 ## Features / Todo of Monza
-- Perft
 - Some optimization
-- Search
-- Evaluation
+- A much better Evaluation mechanism.
 - GUI
-- Code Cleaning
-
-- WIP
+- Code Cleaning, Folder Structure.
 
 ## Resources / Inspiration
 ### Sources that I looked at extensively
@@ -52,3 +46,4 @@ Check out Monza on [Lichess](https://lichess.org/@/MonzaEngine)
 - Chess Programming Wiki
 - Trevor Fenner & Mark Levene - Move Generation with Perfect Hash Functions
 - Bluefever Software
+- Among a plethora of resources here: https://github.com/mourabitiziyad/Monza-Chess-Engine-Report#7references
